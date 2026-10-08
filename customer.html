@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ordering Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -33,7 +33,7 @@
         @keyframes wtPulse { 0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.5); } 70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); } }
     </style>
 </head>
-<body class="bg-zinc-950 text-zinc-100 font-sans min-h-screen flex flex-col justify-between" id="appBody">
+<body class="bg-zinc-950 text-zinc-100 font-sans min-h-screen flex flex-col justify-between overflow-x-hidden" id="appBody">
     
     <!-- Walkthrough Elements -->
     <div class="wt-overlay" id="wtOverlay"></div>
@@ -62,13 +62,14 @@
                 <div id="activeLocationDisplay" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2.5 text-xs text-zinc-300 font-medium">Downtown Main Street</div>
             </div>
 
+            <!-- Dynamic Status Badges -->
             <div id="storeStatusBadge" class="bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-4 py-2 text-xs mb-3 text-emerald-400 flex items-center gap-2 w-full justify-center">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                 <span id="storeStatusText">Open Now • Accepting Orders</span>
             </div>
 
-            <!-- Dynamic Rush Mode Container -->
             <div id="rushStatusContainer" class="w-full"></div>
+            <div id="saleBadgeContainer" class="w-full"></div>
 
             <div class="w-full space-y-3 relative mt-3">
                 <button onclick="switchView('menu')" id="btn-start-order" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-semibold py-3.5 rounded-xl transition shadow-lg shadow-pink-600/25 theme-bg theme-shadow">Start Order</button>
@@ -103,13 +104,12 @@
             </div>
         </div>
 
-        <!-- Tracker View (Added padding to prevent blocking) -->
-        <div id="trackerView" class="p-4 hidden relative z-10 pb-28">
+        <!-- Tracker View -->
+        <div id="trackerView" class="p-4 hidden relative z-10 pb-32">
             <h2 class="font-bold text-lg mb-4 text-center border-b border-zinc-900 pb-2">Order Tracker</h2>
             <div class="space-y-3" id="activeOrdersList"></div>
             
-            <!-- Floating Button to not obscure tracking items -->
-            <div class="fixed bottom-6 left-4 right-4 max-w-md mx-auto z-40">
+            <div class="fixed bottom-12 left-4 right-4 max-w-md mx-auto z-40">
                 <button onclick="window.location.href='owner.html'" id="btn-route-owner" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-semibold py-3.5 rounded-xl transition shadow-lg hidden theme-bg">Enter Owner Backend →</button>
             </div>
         </div>
@@ -152,16 +152,22 @@
         <div class="bg-zinc-900 border border-zinc-800 w-full max-w-sm rounded-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto" id="cart-content-box">
             <div class="flex justify-between items-center border-b border-zinc-800 pb-3"><h3 class="font-bold text-lg">Your Order Cart</h3><button onclick="closeCartModal()" class="text-zinc-400 hover:text-white text-sm">✕</button></div>
             
-            <!-- Removed 'Dynamic' phrasing per instructions -->
             <div id="cartWaitTimeContainer" class="bg-amber-500/10 border border-amber-500/30 rounded-lg p-2.5 flex items-center justify-between text-xs">
                 <span class="text-amber-400 font-medium">⏱️ Wait Time:</span>
                 <span id="cartEstimatedWait" class="font-bold text-amber-400 font-mono">0 mins</span>
             </div>
 
-            <div id="cartItemsList" class="space-y-3"></div>
+            <div id="cartItemsList" class="space-y-3 border-b border-zinc-800 pb-3"></div>
             
-            <div class="space-y-3 pt-2 border-t border-zinc-800">
-                <div><label class="block text-xs text-zinc-400 mb-1">Your Name</label><input type="text" id="customerName" placeholder="Enter name for order" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-200"></div>
+            <div class="space-y-3 pt-1">
+                <div>
+                    <label class="block text-xs text-zinc-400 mb-1">Special Instructions (Optional)</label>
+                    <textarea id="customerNotes" placeholder="Any requests for the kitchen?" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-200 resize-none h-16"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs text-zinc-400 mb-1">Your Name</label>
+                    <input type="text" id="customerName" placeholder="Enter name for order" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-200">
+                </div>
             </div>
             <button onclick="submitOrder()" id="btn-place-order" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-semibold py-3 rounded-xl transition theme-bg">Place Test Order</button>
         </div>
@@ -182,16 +188,10 @@
 
     <script>
         const app = {
-            cart: [],
-            orders: [],
-            menu: [],
-            config: null,
-            wtActive: false,
-            wtStep: 0,
-            firstItemId: 1
+            cart: [], orders: [], menu: [], config: null, wtActive: false, wtStep: 0, firstItemId: 1
         };
 
-        // CORE ENGINE SETUP (Syncs with Owner Backend Settings)
+        // CORE ENGINE SETUP
         function applyDemoConfig() {
             const configData = localStorage.getItem('demo_config');
             if (!configData) return false;
@@ -199,10 +199,7 @@
             app.config = JSON.parse(configData);
             const c = app.config;
 
-            if (c.truckName) {
-                document.getElementById('dynamic-truck-name').innerText = c.truckName;
-                document.title = c.truckName + " - Order";
-            }
+            if (c.truckName) { document.getElementById('dynamic-truck-name').innerText = c.truckName; document.title = c.truckName + " - Order"; }
             if (c.cuisineSubheader) document.getElementById('dynamic-subheader').innerText = c.cuisineSubheader;
             if (c.cuisineEmoji) document.getElementById('dynamic-emoji').innerText = c.cuisineEmoji;
             if (c.ownerIG && c.ownerIG !== "") {
@@ -215,12 +212,14 @@
                 app.menu = c.menu.map((item, index) => {
                     item.id = index + 1;
                     item.category = "⭐ " + (c.truckName || "Signature") + " Menu";
+                    // Ensure salePrice is parsed if it exists
+                    if(item.salePrice && parseFloat(item.salePrice) > 0) item.salePrice = parseFloat(item.salePrice);
                     return item;
                 });
                 app.firstItemId = app.menu[0].id;
             }
 
-            // Sync Store Settings (Location, Status, Rush Mode)
+            // Status, Location, Rush & Sale Sync
             const loc = localStorage.getItem('foodtruck_active_location') || "Downtown Main Street (Live View)";
             document.getElementById('activeLocationDisplay').innerText = loc;
 
@@ -230,46 +229,35 @@
             const statusBadge = document.getElementById('storeStatusBadge');
             
             if(storeStatus === 'closed') {
-                startBtn.disabled = true;
-                startBtn.innerText = "Currently Closed";
-                startBtn.classList.replace('bg-pink-600', 'bg-zinc-800');
-                startBtn.classList.remove('theme-bg', 'theme-shadow');
+                startBtn.disabled = true; startBtn.innerText = "Currently Closed";
+                startBtn.classList.replace('bg-pink-600', 'bg-zinc-800'); startBtn.classList.remove('theme-bg', 'theme-shadow');
                 statusText.innerText = "Closed Right Now";
-                statusBadge.classList.replace('bg-emerald-500/10', 'bg-rose-500/10');
-                statusBadge.classList.replace('text-emerald-400', 'text-rose-400');
-                statusBadge.classList.replace('border-emerald-500/30', 'border-rose-500/30');
+                statusBadge.classList.replace('bg-emerald-500/10', 'bg-rose-500/10'); statusBadge.classList.replace('text-emerald-400', 'text-rose-400'); statusBadge.classList.replace('border-emerald-500/30', 'border-rose-500/30');
                 statusText.previousElementSibling.classList.replace('bg-emerald-500', 'bg-rose-500'); 
             }
 
             const rushMode = parseInt(localStorage.getItem('foodtruck_rush_mode')) || 0;
             const rushContainer = document.getElementById('rushStatusContainer');
             if(rushMode === 15 && storeStatus !== 'closed') {
-                rushContainer.innerHTML = `<div class="bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-2 text-xs mb-3 text-amber-500 flex items-center justify-center font-bold shadow-lg shadow-amber-500/5">⚠️ Busier than usual: +15 min wait times</div>`;
+                rushContainer.innerHTML = `<div class="bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-2 text-xs mb-3 text-amber-500 flex items-center justify-center font-bold shadow-lg shadow-amber-500/5">⚠️ Busy: +15 min wait times</div>`;
             } else if(rushMode === 30 && storeStatus !== 'closed') {
                 rushContainer.innerHTML = `<div class="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-2 text-xs mb-3 text-red-500 flex items-center justify-center font-bold shadow-lg shadow-red-500/5">🚨 Very Busy: +30 min wait times</div>`;
-            } else {
-                rushContainer.innerHTML = '';
+            } else { rushContainer.innerHTML = ''; }
+
+            const saleContainer = document.getElementById('saleBadgeContainer');
+            const hasSale = app.menu.some(m => m.salePrice && m.salePrice > 0);
+            if (hasSale && storeStatus !== 'closed') {
+                saleContainer.innerHTML = `<div class="bg-red-600/10 border border-red-600/50 rounded-xl px-4 py-2 text-xs mb-3 text-red-500 flex items-center justify-center font-bold shadow-lg shadow-red-500/10 animate-pulse">🏷️ Sale</div>`;
             }
 
-            // CSS OVERRIDE
+            // CSS Override
             if (c.themeClass) document.body.classList.add(c.themeClass);
             if (c.themeColor || c.themeClass) {
                 const brandColor = c.themeColor || "#ec4899"; 
-                let extraCSS = `
-                    .theme-bg { background-color: ${brandColor} !important; color: #fff !important; }
-                    .theme-bg-dark { background-color: ${brandColor} !important; filter: brightness(0.8) !important; color: #fff !important; }
-                    .theme-text { color: ${brandColor} !important; }
-                    .theme-border { border-color: ${brandColor} !important; }
-                    .theme-shadow { box-shadow: 0 4px 15px ${brandColor}40 !important; }
-                `;
-                if (c.themeClass === 'theme-cleanslate') {
-                    extraCSS += `.theme-bg, .theme-bg-dark { background-color: #111 !important; color: #fff !important; } .theme-text { color: #111 !important; } .theme-border { border-color: #333 !important; }`;
-                } else if (c.themeClass === 'theme-obsidian') {
-                    extraCSS += `.theme-bg, .theme-bg-dark { background-color: #fff !important; color: #000 !important; } .theme-text { color: #ddd !important; } .theme-border { border-color: #ddd !important; }`;
-                }
-                const style = document.createElement('style');
-                style.innerHTML = extraCSS;
-                document.head.appendChild(style);
+                let extraCSS = `.theme-bg { background-color: ${brandColor} !important; color: #fff !important; } .theme-bg-dark { background-color: ${brandColor} !important; filter: brightness(0.8) !important; color: #fff !important; } .theme-text { color: ${brandColor} !important; } .theme-border { border-color: ${brandColor} !important; } .theme-shadow { box-shadow: 0 4px 15px ${brandColor}40 !important; }`;
+                if (c.themeClass === 'theme-cleanslate') extraCSS += `.theme-bg, .theme-bg-dark { background-color: #111 !important; color: #fff !important; } .theme-text { color: #111 !important; } .theme-border { border-color: #333 !important; }`;
+                else if (c.themeClass === 'theme-obsidian') extraCSS += `.theme-bg, .theme-bg-dark { background-color: #fff !important; color: #000 !important; } .theme-text { color: #ddd !important; } .theme-border { border-color: #ddd !important; }`;
+                const style = document.createElement('style'); style.innerHTML = extraCSS; document.head.appendChild(style);
                 document.getElementById('wtTooltip').style.borderColor = c.themeClass === 'theme-cleanslate' ? '#000' : brandColor;
             }
             return true;
@@ -292,14 +280,14 @@
             { trigger: () => { wtShow("Dynamic Cart", "The cart icon now tracks their total. Let's check out.", "btn-view-cart", false); } },
             { trigger: () => {
                 document.getElementById('customerName').value = app.config?.ownerName || "Test Customer";
-                // positionHint 'extreme-bottom' puts the tip strictly below the modal
+                // Tooltip pushed to bottom so the wait time is completely unobstructed
                 wtShow("Wait Time Calculation", "Look at the top. The system calculated an exact wait estimate based on prep times. Click Place Order.", "btn-place-order", false, 'extreme-bottom');
             }},
             { trigger: () => { wtShow("Ticket Generation", "Success! The system collected the money and generated a ticket. View the customer tracker.", "btn-view-tracker", false, 'top'); } },
             { trigger: () => {
                 document.getElementById('btn-route-owner').classList.remove('hidden');
-                // hideOverlay = true, makes tracker visible behind the tip
-                wtShow("Backend Handoff", "The customer waits here. Now, let's jump to your Kitchen Display to fulfill this order.", "btn-route-owner", false, 'bottom', true);
+                // Handoff placed directly in the center to avoid the tracker text and the fixed button
+                wtShow("Backend Handoff", "The customer waits here. Now, let's jump to your Kitchen Display to fulfill this order.", "btn-route-owner", false, 'center', true);
             }}
         ];
 
@@ -331,36 +319,30 @@
 
                     // Strict Tooltip Positioning
                     tooltip.style.display = 'flex';
-                    if (positionHint === 'top') {
-                        tooltip.style.bottom = 'auto'; tooltip.style.top = '5%';
-                    } else if (positionHint === 'bottom') {
-                        tooltip.style.top = 'auto'; tooltip.style.bottom = '5%';
-                    } else if (positionHint === 'extreme-bottom') {
-                        tooltip.style.top = 'auto'; tooltip.style.bottom = '2%';
-                    } else {
+                    if (positionHint === 'top') { tooltip.style.bottom = 'auto'; tooltip.style.top = '5%'; tooltip.style.transform = 'translateX(-50%)'; } 
+                    else if (positionHint === 'bottom') { tooltip.style.top = 'auto'; tooltip.style.bottom = '5%'; tooltip.style.transform = 'translateX(-50%)'; } 
+                    else if (positionHint === 'extreme-bottom') { tooltip.style.top = 'auto'; tooltip.style.bottom = '2%'; tooltip.style.transform = 'translateX(-50%)'; } 
+                    else if (positionHint === 'center') { tooltip.style.top = '50%'; tooltip.style.bottom = 'auto'; tooltip.style.transform = 'translate(-50%, -50%)'; }
+                    else {
                         const rect = target.getBoundingClientRect();
-                        if (rect.top < window.innerHeight / 2) { tooltip.style.top = 'auto'; tooltip.style.bottom = '10%'; } 
-                        else { tooltip.style.bottom = 'auto'; tooltip.style.top = '10%'; }
+                        if (rect.top < window.innerHeight / 2) { tooltip.style.top = 'auto'; tooltip.style.bottom = '10%'; tooltip.style.transform = 'translateX(-50%)';} 
+                        else { tooltip.style.bottom = 'auto'; tooltip.style.top = '10%'; tooltip.style.transform = 'translateX(-50%)';}
                     }
                 }
             } else {
-                tooltip.style.display = 'flex'; tooltip.style.bottom = 'auto'; tooltip.style.top = '40%';
+                tooltip.style.display = 'flex'; tooltip.style.bottom = 'auto'; tooltip.style.top = '40%'; tooltip.style.transform = 'translateX(-50%)';
             }
         }
 
         function wtNextStep() {
             if (!app.wtActive) return;
-            app.wtStep++;
-            document.getElementById('wtTooltip').style.display = 'none';
-            if (app.wtStep < walkthroughSteps.length) {
-                setTimeout(() => { walkthroughSteps[app.wtStep].trigger(); }, 300);
-            } else { endWalkthrough(); }
+            app.wtStep++; document.getElementById('wtTooltip').style.display = 'none';
+            if (app.wtStep < walkthroughSteps.length) setTimeout(() => { walkthroughSteps[app.wtStep].trigger(); }, 300);
+            else endWalkthrough();
         }
 
         function endWalkthrough() {
-            app.wtActive = false;
-            document.getElementById('wtOverlay').style.display = 'none';
-            document.getElementById('wtTooltip').style.display = 'none';
+            app.wtActive = false; document.getElementById('wtOverlay').style.display = 'none'; document.getElementById('wtTooltip').style.display = 'none';
             document.querySelectorAll('.wt-spotlight').forEach(el => el.classList.remove('wt-spotlight', 'wt-spotlight-pulse'));
             document.querySelectorAll('.wt-parent-override').forEach(el => el.classList.remove('wt-parent-override'));
         }
@@ -372,24 +354,14 @@
             }
         }
 
-        // UI FUNCTIONS
         function switchView(view) {
             if(app.wtActive && view !== 'menu' && view !== 'tracker') return; 
-            
             ['landingView', 'menuView', 'trackerView'].forEach(v => {
-                const el = document.getElementById(v);
-                if (el) el.style.display = 'none';
+                const el = document.getElementById(v); if (el) el.style.display = 'none';
             });
             if (view === 'landing') document.getElementById('landingView').style.display = 'flex';
-            if (view === 'menu') { 
-                document.getElementById('menuView').style.display = 'block'; 
-                renderMenu(); 
-                if(app.wtActive && app.wtStep === 1) wtNextStep(); 
-            }
-            if (view === 'tracker') { 
-                document.getElementById('trackerView').style.display = 'block'; 
-                renderTracker(); 
-            }
+            if (view === 'menu') { document.getElementById('menuView').style.display = 'block'; renderMenu(); if(app.wtActive && app.wtStep === 1) wtNextStep(); }
+            if (view === 'tracker') { document.getElementById('trackerView').style.display = 'block'; renderTracker(); }
         }
 
         function renderMenu() {
@@ -413,12 +385,17 @@
                     <h3 class="font-bold mb-3 text-sm theme-text">${cat}</h3>
                     <div class="space-y-3">
                         ${app.menu.filter(i => i.category === cat).map(item => {
-                            // Check if owner marked it sold out in the backend (using persistent logic later)
+                            let priceHTML = `<span class="text-sm font-semibold menu-item-price theme-text">$${item.price.toFixed(2)}</span>`;
+                            if(item.salePrice && item.salePrice > 0) {
+                                priceHTML = `<span class="text-sm font-semibold line-through text-zinc-500 mr-1">$${item.price.toFixed(2)}</span><span class="text-sm font-bold text-red-500">$${item.salePrice.toFixed(2)}</span>`;
+                            }
                             return `
                             <div class="bg-zinc-900 border border-zinc-800 p-4 rounded-xl flex justify-between items-center">
                                 <div>
                                     <h4 class="font-bold text-sm">${item.name}</h4>
-                                    <p class="text-xs text-zinc-400 mt-0.5">${item.desc}</p>                                     <div class="flex items-center gap-3 mt-2">                                         <span class="text-sm font-semibold menu-item-price theme-text">$${item.price.toFixed(2)}</span>
+                                    <p class="text-xs text-zinc-400 mt-0.5">${item.desc}</p>
+                                    <div class="flex items-center gap-3 mt-2">
+                                        ${priceHTML}
                                         <span class="text-[10px] text-zinc-500">(~${item.prep})</span>
                                     </div>
                                 </div>
@@ -487,7 +464,9 @@
                 if (meatSelect.selectedIndex > 0 && currentModalItem.premiumUpcharge) itemUpcharge += currentModalItem.premiumUpcharge;
             }
 
-            const effectivePrice = currentModalItem.price + itemUpcharge;
+            // Use sale price if it exists, otherwise standard price
+            const basePrice = (currentModalItem.salePrice && currentModalItem.salePrice > 0) ? currentModalItem.salePrice : currentModalItem.price;
+            const effectivePrice = basePrice + itemUpcharge;
             const prepMins = parseInt(currentModalItem.prep) || 3; 
 
             app.cart.push({ name: itemName, price: effectivePrice, quantity: currentModalQtyVal, prep: prepMins });
@@ -534,7 +513,10 @@
         function submitOrder() {
             const ticketId = Date.now().toString().slice(-3);
             let nameInput = document.getElementById('customerName').value.trim() || "Guest";
-            const summary = app.cart.map(i => `${i.quantity}x ${i.name}`).join(', ');
+            let notesInput = document.getElementById('customerNotes').value.trim();
+            let notesString = notesInput ? `\nNote: ${notesInput}` : '';
+            
+            const summary = app.cart.map(i => `${i.quantity}x ${i.name}`).join(', ') + notesString;
             const total = app.cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
             
             const newOrder = { id: ticketId, name: nameInput, items: summary, status: "Preparing", total, timestamp: Date.now() };
@@ -546,14 +528,13 @@
             app.orders.unshift(newOrder);
             app.cart = []; 
             document.getElementById('cartModal').style.display = 'none'; 
+            document.getElementById('customerNotes').value = ''; // Clear notes
             updateCartBadges(); 
 
             document.getElementById('successTicketNum').innerText = `#${newOrder.id}`;
             document.getElementById('successModal').style.display = 'flex';
             
-            // Loop feature: Enable the button so post-demo clients can easily bounce back
             document.getElementById('btn-route-owner').classList.remove('hidden');
-            
             localStorage.setItem('wt_incoming_demo', 'true');
             if(app.wtActive && app.wtStep === 5) wtNextStep(); 
         }
@@ -575,11 +556,12 @@
                     </div>
                 </div>
             `).join('');
+            
+            // Loop feature: if orders exist, ensure owner button is always visible
+            if(app.orders.length > 0) document.getElementById('btn-route-owner').classList.remove('hidden');
         }
 
-        window.onload = () => {
-            if (applyDemoConfig()) startWalkthrough();
-        };
+        window.onload = () => { if (applyDemoConfig()) startWalkthrough(); };
     </script>
 </body>
 </html>
