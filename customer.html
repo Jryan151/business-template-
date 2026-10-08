@@ -10,7 +10,7 @@
         .wt-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(2px);
-            z-index: 9998; display: none;
+            z-index: 9998; display: none; pointer-events: auto;
         }
         .wt-tooltip {
             position: fixed; z-index: 10000; background: #FFFFFF; color: #181719;
@@ -18,7 +18,7 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.5); max-width: 280px; display: none;
             flex-direction: column; gap: 0.5rem; pointer-events: auto; font-family: sans-serif;
             border: 2px solid #ec4899; 
-            transition: all 0.3s ease;
+            transition: all 0.3s ease; left: 50%; transform: translateX(-50%);
         }
         .wt-tooltip-header { font-weight: 700; font-size: 1.05rem; color: #000; display: flex; justify-content: space-between; align-items: center;}
         .wt-skip-btn { background: none; border: none; color: #999; font-size: 0.75rem; cursor: pointer; text-decoration: underline; }
@@ -27,8 +27,9 @@
             border-radius: 6px; font-weight: 600; cursor: pointer; text-align: center; font-size: 0.8rem; margin-top: 0.5rem;
         }
         
-        /* The spotlight elevates the element so it can be clicked through the overlay */
+        /* Elevates the specific target element AND its parent containers above the overlay */
         .wt-spotlight { position: relative; z-index: 9999 !important; border-radius: inherit; pointer-events: auto !important; }
+        .wt-parent-override { z-index: 9999 !important; }
         .wt-spotlight-pulse { animation: wtPulse 2s infinite; }
         @keyframes wtPulse { 0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.5); } 70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); } }
     </style>
@@ -46,8 +47,7 @@
         <button class="wt-tooltip-btn" id="wtNextBtn">Got it</button>
     </div>
 
-    <!-- Removed restrictive z-index traps from layout containers -->
-    <div class="max-w-md mx-auto w-full flex-grow">
+    <div class="max-w-md mx-auto w-full flex-grow relative">
         <!-- Landing View -->
         <div id="landingView" class="p-6 flex flex-col items-center justify-center min-h-[90vh] text-center">
             <div class="w-24 h-24 rounded-full border-2 border-pink-500 p-1 mb-4 flex items-center justify-center shadow-lg shadow-pink-500/10 theme-border theme-shadow">
@@ -68,7 +68,7 @@
                 <span id="storeStatusText">Open Now • Until 6:00 PM</span>
             </div>
 
-            <div class="w-full space-y-3">
+            <div class="w-full space-y-3 relative">
                 <button onclick="switchView('menu')" id="btn-start-order" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-semibold py-3.5 rounded-xl transition shadow-lg shadow-pink-600/25 theme-bg theme-shadow">Start Order</button>
             </div>
 
@@ -90,9 +90,9 @@
                 <div id="popularHighlightsContainer" class="grid grid-cols-3 gap-2 text-center mt-2"></div>
             </div>
 
-            <div id="menuContainer" class="space-y-6"></div>
+            <div id="menuContainer" class="space-y-6 relative"></div>
             
-            <div class="fixed bottom-4 left-4 right-4 max-w-md mx-auto z-40" id="cartWrapper">
+            <div class="fixed bottom-4 left-4 right-4 max-w-md mx-auto z-40 relative">
                 <button onclick="openCartModal()" id="btn-view-cart" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-semibold py-3 rounded-xl shadow-xl flex justify-between px-5 items-center transition-all theme-bg">
                     <span id="cartCountBadge" class="bg-pink-700 px-2 py-0.5 rounded-md text-xs font-bold theme-bg-dark">0 items</span>
                     <span>View Cart</span>
@@ -157,7 +157,7 @@
 
     <!-- Success Modal -->
     <div id="successModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-zinc-900 border border-zinc-800 w-full max-w-sm rounded-2xl p-6 text-center space-y-4">
+        <div class="bg-zinc-900 border border-zinc-800 w-full max-w-sm rounded-2xl p-6 text-center space-y-4 relative" id="success-content-box">
             <div class="w-16 h-16 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full flex items-center justify-center mx-auto text-2xl">✓</div>
             <h3 class="font-bold text-lg text-zinc-100">Order Placed!</h3>
             <div class="bg-zinc-950 p-4 rounded-xl border border-zinc-800 space-y-1">
@@ -250,7 +250,7 @@
             return true;
         }
 
-        // FAIL-SAFE WALKTHROUGH ENGINE
+        // FAIL-SAFE WALKTHROUGH ENGINE (Synchronized with Native App Logic)
         const walkthroughSteps = [
             { // 0
                 trigger: () => {
@@ -309,43 +309,42 @@
             nextBtn.style.display = showNextBtn ? 'block' : 'none';
             nextBtn.onclick = () => { wtNextStep(); };
             
-            // Clean old targets
-            document.querySelectorAll('.wt-spotlight').forEach(el => {
-                el.classList.remove('wt-spotlight', 'wt-spotlight-pulse');
-                el.removeEventListener('click', wtTargetClicked);
-            });
+            // Clean up old classes
+            document.querySelectorAll('.wt-spotlight').forEach(el => el.classList.remove('wt-spotlight', 'wt-spotlight-pulse'));
+            document.querySelectorAll('.wt-parent-override').forEach(el => el.classList.remove('wt-parent-override'));
 
             if (targetId) {
                 const target = document.getElementById(targetId);
                 if (target) {
+                    // Add spotlight to the button
                     target.classList.add('wt-spotlight', 'wt-spotlight-pulse');
                     
-                    // Elevate parent if trapped in a fixed container (like the Cart bar)
-                    const fixedParent = target.closest('.fixed');
-                    if (fixedParent) {
-                        fixedParent.dataset.oldZ = fixedParent.style.zIndex;
-                        fixedParent.style.zIndex = '10000';
+                    // Dynamically elevate all parent containers so the button is guaranteed clickable
+                    let current = target.parentElement;
+                    while(current && current.tagName !== 'BODY') {
+                        const style = window.getComputedStyle(current);
+                        if (style.zIndex !== 'auto' && style.zIndex !== '') {
+                            current.classList.add('wt-parent-override');
+                        }
+                        current = current.parentElement;
                     }
 
-                    // Attach the event listener to advance the guide ONLY once clicked
-                    target.addEventListener('click', wtTargetClicked, { once: true });
-                    
+                    // Dynamically position the tooltip safely away from the button
+                    const rect = target.getBoundingClientRect();
                     tooltip.style.display = 'flex';
-                    tooltip.style.top = '15%';
-                    tooltip.style.left = '50%';
-                    tooltip.style.transform = 'translate(-50%, 0)';
+                    if (rect.top < window.innerHeight / 2) {
+                        tooltip.style.top = 'auto';
+                        tooltip.style.bottom = '15%'; 
+                    } else {
+                        tooltip.style.bottom = 'auto';
+                        tooltip.style.top = '15%'; 
+                    }
                 }
             } else {
                 tooltip.style.display = 'flex';
+                tooltip.style.bottom = 'auto';
                 tooltip.style.top = '40%';
-                tooltip.style.left = '50%';
-                tooltip.style.transform = 'translate(-50%, -50%)';
             }
-        }
-
-        // Wait a split second for the UI action to finish, THEN advance the guide
-        function wtTargetClicked(e) {
-            setTimeout(() => { wtNextStep(); }, 400); 
         }
 
         function wtNextStep() {
@@ -363,17 +362,8 @@
             app.wtActive = false;
             document.getElementById('wtOverlay').style.display = 'none';
             document.getElementById('wtTooltip').style.display = 'none';
-            document.querySelectorAll('.wt-spotlight').forEach(el => {
-                el.classList.remove('wt-spotlight', 'wt-spotlight-pulse');
-                el.removeEventListener('click', wtTargetClicked);
-            });
-            // Reset any elevated fixed containers
-            document.querySelectorAll('.fixed').forEach(el => {
-                if (el.dataset.oldZ !== undefined) {
-                    el.style.zIndex = el.dataset.oldZ;
-                    delete el.dataset.oldZ;
-                }
-            });
+            document.querySelectorAll('.wt-spotlight').forEach(el => el.classList.remove('wt-spotlight', 'wt-spotlight-pulse'));
+            document.querySelectorAll('.wt-parent-override').forEach(el => el.classList.remove('wt-parent-override'));
         }
 
         function startWalkthrough() {
@@ -385,9 +375,8 @@
             }
         }
 
-        // STANDARD UI FUNCTIONS
+        // STANDARD UI FUNCTIONS (With Native Walkthrough Triggers Embedded)
         function switchView(view) {
-            // Only allow transitions to these specific views during the walkthrough
             if(app.wtActive && view !== 'menu' && view !== 'tracker') return; 
             
             ['landingView', 'menuView', 'trackerView'].forEach(v => {
@@ -395,7 +384,11 @@
                 if (el) el.style.display = 'none';
             });
             if (view === 'landing') document.getElementById('landingView').style.display = 'flex';
-            if (view === 'menu') { document.getElementById('menuView').style.display = 'block'; renderMenu(); }
+            if (view === 'menu') { 
+                document.getElementById('menuView').style.display = 'block'; 
+                renderMenu(); 
+                if(app.wtActive && app.wtStep === 1) wtNextStep(); // Trigger Guide Next
+            }
             if (view === 'tracker') { document.getElementById('trackerView').style.display = 'block'; renderTracker(); }
         }
 
@@ -403,7 +396,6 @@
             const container = document.getElementById('menuContainer');
             const highlights = document.getElementById('popularHighlightsContainer');
             if (!container) return;
-            
             if (app.menu.length === 0) return;
 
             if (highlights) {
@@ -474,6 +466,7 @@
             }
 
             document.getElementById('itemModal').style.display = 'flex';
+            if(app.wtActive && app.wtStep === 2) wtNextStep(); // Trigger Guide Next
         }
 
         function closeItemModal() {
@@ -506,6 +499,7 @@
             
             document.getElementById('itemModal').style.display = 'none';
             updateCartBadges();
+            if(app.wtActive && app.wtStep === 3) wtNextStep(); // Trigger Guide Next
         }
 
         function updateCartBadges() {
@@ -532,6 +526,7 @@
             `).join('');
             
             document.getElementById('cartModal').style.display = 'flex';
+            if(app.wtActive && app.wtStep === 4) wtNextStep(); // Trigger Guide Next
         }
 
         function closeCartModal() { 
@@ -562,11 +557,13 @@
             document.getElementById('successModal').style.display = 'flex';
             
             localStorage.setItem('wt_incoming_demo', 'true');
+            if(app.wtActive && app.wtStep === 5) wtNextStep(); // Trigger Guide Next
         }
 
         function closeSuccessModal() {
             document.getElementById('successModal').style.display = 'none';
             switchView('tracker');
+            if(app.wtActive && app.wtStep === 6) wtNextStep(); // Trigger Guide Next
         }
 
         function renderTracker() {
