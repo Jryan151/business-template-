@@ -220,7 +220,7 @@
                 app.firstItemId = app.menu[0].id;
             }
 
-            // Status, Location, Rush & Sale Sync
+            // Status & Location Sync
             const loc = localStorage.getItem('foodtruck_active_location') || "Downtown Main Street (Live View)";
             document.getElementById('activeLocationDisplay').innerText = loc;
 
@@ -237,7 +237,16 @@
                 statusText.previousElementSibling.classList.replace('bg-emerald-500', 'bg-rose-500'); 
             }
 
-            const rushMode = parseInt(localStorage.getItem('foodtruck_rush_mode')) || 0;
+            // Rush Mode Setup (Forces +15 Mins if demo is new so features can be seen)
+            let rushModeStr = localStorage.getItem('foodtruck_rush_mode');
+            let rushMode = 0;
+            if (!rushModeStr) {
+                rushMode = 15;
+                localStorage.setItem('foodtruck_rush_mode', '15');
+            } else {
+                rushMode = parseInt(rushModeStr) || 0;
+            }
+
             const rushContainer = document.getElementById('rushStatusContainer');
             if(rushMode === 15 && storeStatus !== 'closed') {
                 rushContainer.innerHTML = `<div class="bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-2 text-xs mb-3 text-amber-500 flex items-center justify-center font-bold shadow-lg shadow-amber-500/5">⚠️ Busy: +15 min wait times</div>`;
@@ -245,10 +254,11 @@
                 rushContainer.innerHTML = `<div class="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-2 text-xs mb-3 text-red-500 flex items-center justify-center font-bold shadow-lg shadow-red-500/5">🚨 Very Busy: +30 min wait times</div>`;
             } else { rushContainer.innerHTML = ''; }
 
+            // Sale Sync
             const saleContainer = document.getElementById('saleBadgeContainer');
             const hasSale = app.menu.some(m => m.salePrice && m.salePrice > 0);
             if (hasSale && storeStatus !== 'closed') {
-                saleContainer.innerHTML = `<div class="bg-red-600/10 border border-red-600/50 rounded-xl px-4 py-2 text-xs mb-3 text-red-500 flex items-center justify-center font-bold shadow-lg shadow-red-500/10">Sale</div>`;
+                saleContainer.innerHTML = `<div class="bg-red-600/10 border border-red-600/50 rounded-xl px-4 py-2 text-xs mb-3 text-red-500 flex items-center justify-center font-bold shadow-lg shadow-red-500/10 animate-pulse">🏷️ Sale</div>`;
             }
 
             // CSS Override
@@ -266,8 +276,8 @@
 
         // FULL 10-STEP CUSTOMER WALKTHROUGH ENGINE
         const walkthroughSteps = [
-            { trigger: () => { const name = app.config?.ownerName || "Partner"; wtShow(`Welcome, ${name}!`, "Your digital storefront is live. Let's place a test order to see the automation.", null, true); } },
-            { trigger: () => { wtShow("Real-Time Sync", "Your active location, open status, and rush-hour wait times update instantly from your kitchen display.", "status-group", false, 'top'); } },
+            { trigger: () => { const name = app.config?.ownerName || "Partner"; wtShow(`Welcome, ${name}!`, "Your digital storefront is live. Let's place a test order to see the automation.", null, true, 'auto', false, "Next"); } },
+            { trigger: () => { wtShow("Real-Time Sync", "Your active location, open status, and rush-hour wait times update instantly from your kitchen display.", "status-group", true, 'bottom', false, "Next"); } },
             { trigger: () => { wtShow("The Front Door", "Click the Start Order button to enter your menu.", "btn-start-order", false, 'extreme-bottom'); } },
             { trigger: () => { 
                 wtShow("Live Menu Control", "Notice the 'Sale' tag and the greyed-out 'Sold Out' item? You control all of this instantly from the backend.", null, true, 'top', true, "Next"); 
