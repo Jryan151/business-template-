@@ -11,6 +11,7 @@
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(2px);
             z-index: 9998; display: none;
+            pointer-events: auto; /* Block clicks on the background */
         }
         .wt-tooltip {
             position: fixed; z-index: 10000; background: #FFFFFF; color: #181719;
@@ -43,7 +44,7 @@
             <button class="wt-skip-btn" onclick="endWalkthrough()">Skip Guide</button>
         </div>
         <div id="wtText">Let's walk through your new system.</div>
-        <button class="wt-tooltip-btn" id="wtNextBtn">Next</button>
+        <button class="wt-tooltip-btn" id="wtNextBtn">Got it</button>
     </div>
 
     <div class="max-w-md mx-auto w-full flex-grow relative z-10">
@@ -370,6 +371,9 @@
 
         // STANDARD UI FUNCTIONS
         function switchView(view) {
+            // Only allow transitions to these specific views during the walkthrough
+            if(app.wtActive && view !== 'menu' && view !== 'tracker') return; 
+            
             ['landingView', 'menuView', 'trackerView'].forEach(v => {
                 const el = document.getElementById(v);
                 if (el) el.style.display = 'none';
