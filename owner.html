@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Management Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -21,7 +21,8 @@
         .toggle-checkbox:checked + .toggle-label { background-color: #10b981; }
     </style>
 </head>
-<body class="bg-zinc-950 text-zinc-100 font-sans min-h-screen flex flex-col" id="appBody">
+<!-- overflow-x-hidden permanently prevents horizontal sliding/zooming -->
+<body class="bg-zinc-950 text-zinc-100 font-sans min-h-screen flex flex-col overflow-x-hidden" id="appBody">
     
     <!-- Walkthrough Elements -->
     <div class="wt-overlay" id="wtOverlay"></div>
@@ -48,7 +49,7 @@
             </div>
         </div>
 
-        <!-- Dashboard Header (Shared between Dashboard and Post-Demo View) -->
+        <!-- Dashboard Header -->
         <div id="dashboardHeader" class="p-4 hidden border-b border-zinc-900 pb-3 mb-4">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2.5">
@@ -92,6 +93,7 @@
 
             <!-- Tab 3: Settings & Locations -->
             <div id="ownerTabSettings" class="space-y-5 hidden relative">
+                <!-- Status & Rush -->
                 <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
                     <h3 class="font-bold text-sm text-zinc-100 mb-3 border-b border-zinc-800 pb-2">Operational Status</h3>
                     <div class="flex gap-2">
@@ -106,6 +108,7 @@
                     </div>
                 </div>
 
+                <!-- Locations -->
                 <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4" id="locationManagerBox">
                     <h3 class="font-bold text-sm text-zinc-100 mb-3 border-b border-zinc-800 pb-2">Location Manager</h3>
                     <div class="flex gap-2 mb-3">
@@ -117,12 +120,16 @@
                     <div class="space-y-2" id="deletedLocationsList"></div>
                 </div>
 
+                <!-- Security -->
                 <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-                    <h3 class="font-bold text-sm text-zinc-100 mb-3 border-b border-zinc-800 pb-2">Security</h3>
+                    <h3 class="font-bold text-sm text-zinc-100 mb-3 border-b border-zinc-800 pb-2">Security Settings</h3>
                     <label class="block text-xs text-zinc-400 mb-1">Set New Password/PIN (4-6 chars)</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="newPinInput" maxlength="6" class="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-xs text-zinc-200 text-center tracking-widest font-mono">
-                        <button onclick="updatePin()" class="bg-pink-600 hover:bg-pink-500 text-white px-4 rounded-lg text-xs font-bold theme-bg">Save</button>
+                    <div class="flex flex-col gap-2">
+                        <div class="flex gap-2">
+                            <input type="text" id="newPinInput" maxlength="6" placeholder="New PIN" class="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-xs text-zinc-200 text-center tracking-widest font-mono">
+                            <input type="text" id="confirmPinInput" maxlength="6" placeholder="Confirm" class="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-xs text-zinc-200 text-center tracking-widest font-mono">
+                        </div>
+                        <button onclick="updatePin()" class="w-full bg-pink-600 hover:bg-pink-500 text-white py-2.5 rounded-lg text-xs font-bold theme-bg">Save New PIN</button>
                     </div>
                 </div>
             </div>
@@ -153,7 +160,7 @@
                     Thank you for trying my demo. There are still many features in development. Everything shown in this tutorial will be available for free coming soon.
                 </p>
                 <p class="text-sm text-zinc-200 leading-relaxed">
-                    Payment processing, Custom domain, SMS alerts, Loyalty program, and much more will be available at a fixed low monthly price.
+                    Payment processing, Custom domain. SMS alerts, Loyalty program, and much more will be available at a fixed low monthly price.
                 </p>
                 <p class="text-sm text-emerald-400 font-semibold leading-relaxed">
                     If you would like to try a functional free trial before release, please DM me.
@@ -166,7 +173,7 @@
         </div>
     </div>
 
-    <!-- Modals (Time Clock, Live Edit, ROI) -->
+    <!-- Modals -->
     <div id="timeClockModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-zinc-900 border border-zinc-800 w-full max-w-sm rounded-2xl p-5 space-y-4 relative">
             <div class="flex justify-between items-center"><h3 class="font-bold text-lg">Employee Time Tracker</h3><button onclick="closeTimeClock()" class="text-zinc-400 hover:text-white text-sm">✕</button></div>
@@ -176,18 +183,28 @@
         </div>
     </div>
 
+    <!-- Expanded Live Editor Modal -->
     <div id="editItemModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-zinc-900 border border-zinc-800 w-full max-w-sm rounded-2xl p-5 space-y-4 relative">
+        <div class="bg-zinc-900 border border-zinc-800 w-full max-w-sm rounded-2xl p-5 space-y-4 relative overflow-y-auto max-h-[90vh]">
             <div class="flex justify-between items-center"><h3 class="font-bold text-lg text-pink-400 theme-text">Live Editor</h3><button onclick="closeEditItem()" class="text-zinc-400 hover:text-white text-sm">✕</button></div>
-            <div><label class="block text-xs text-zinc-400 mb-1">Item Name</label><input type="text" id="editName" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-200"></div>
-            <div class="flex gap-3">
-                <div class="flex-1"><label class="block text-xs text-zinc-400 mb-1">Price ($)</label><input type="number" id="editPrice" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-200"></div>
-                <div class="flex-1"><label class="block text-xs text-zinc-400 mb-1">Prep (Mins)</label><input type="number" id="editPrep" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-200"></div>
+            <div>
+                <label class="block text-xs text-zinc-400 mb-1">Item Name</label>
+                <input type="text" id="editName" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-200">
             </div>
-            <button onclick="closeEditItem()" id="btn-close-edit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 rounded-xl transition shadow-lg mt-2">Save & Sync Live</button>
+            <div>
+                <label class="block text-xs text-zinc-400 mb-1">Description</label>
+                <textarea id="editDesc" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-200 h-16 resize-none"></textarea>
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+                <div><label class="block text-[10px] text-zinc-400 mb-1">Reg. Price ($)</label><input type="number" id="editPrice" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-2 text-sm text-zinc-200"></div>
+                <div><label class="block text-[10px] text-zinc-400 mb-1">Sale Price ($)</label><input type="number" id="editSalePrice" placeholder="Optional" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-2 text-sm text-zinc-200 border-red-500/30 focus:border-red-500 focus:bg-red-500/5"></div>
+                <div><label class="block text-[10px] text-zinc-400 mb-1">Prep (Mins)</label><input type="number" id="editPrep" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-2 text-sm text-zinc-200"></div>
+            </div>
+            <button onclick="saveEditItem()" id="btn-save-edit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 rounded-xl transition shadow-lg mt-2">Save & Sync Live</button>
         </div>
     </div>
 
+    <!-- ROI Modal -->
     <div id="roiModal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-zinc-900 border border-emerald-500/30 w-full max-w-sm rounded-2xl p-6 text-center space-y-5 shadow-2xl shadow-emerald-500/20 relative">
             <div class="w-20 h-20 bg-emerald-500/10 border border-emerald-500/50 text-emerald-400 rounded-full flex items-center justify-center mx-auto text-4xl mb-2">💸</div>
@@ -206,18 +223,20 @@
 
     <script>
         const app = {
-            config: null, wtActive: false, wtStep: 0,
+            config: null, wtActive: false, wtStep: 0, currentEditId: null,
             get orders() { return JSON.parse(localStorage.getItem('foodtruck_orders')) || []; },
             set orders(val) { localStorage.setItem('foodtruck_orders', JSON.stringify(val)); },
             get history() { return JSON.parse(localStorage.getItem('foodtruck_history')) || []; },
             set history(val) { localStorage.setItem('foodtruck_history', JSON.stringify(val)); },
             get menu() { 
                 const c = JSON.parse(localStorage.getItem('demo_config'));
-                if (c && c.menu) return c.menu.map((item, index) => ({ id: 900 + index, name: item.name, price: parseFloat(item.price)||0, prep: parseInt(item.prep)||3, soldOut: false }));
+                if (c && c.menu) return c.menu.map((item, index) => ({ 
+                    id: 900 + index, name: item.name, desc: item.desc || "Signature house item.", 
+                    price: parseFloat(item.price)||0, salePrice: parseFloat(item.salePrice)||null, 
+                    prep: parseInt(item.prep)||3, soldOut: item.soldOut || false 
+                }));
                 return []; 
             },
-            
-            // Settings State
             get locations() { return JSON.parse(localStorage.getItem('ft_locations')) || ["Downtown Main Street", "City Park", "Food Truck Row"]; },
             set locations(val) { localStorage.setItem('ft_locations', JSON.stringify(val)); },
             get deletedLocations() { return JSON.parse(localStorage.getItem('ft_deleted_locs')) || []; },
@@ -227,8 +246,7 @@
         function applyDemoConfig() {
             const configData = localStorage.getItem('demo_config');
             if (!configData) return;
-            app.config = JSON.parse(configData);
-            const c = app.config;
+            app.config = JSON.parse(configData); const c = app.config;
 
             if (c.truckName) { document.getElementById('dynamic-truck-name-login').innerText = c.truckName; document.getElementById('dynamic-truck-name-dash').innerText = c.truckName; }
             if (c.cuisineEmoji) { document.getElementById('dynamic-emoji-login').innerText = c.cuisineEmoji; document.getElementById('dynamic-emoji-dash').innerText = c.cuisineEmoji; }
@@ -247,7 +265,7 @@
         // WALKTHROUGH ENGINE (14 Steps)
         const walkthroughSteps = [
             { trigger: () => { wtShow("Security First", "Your backend is PIN-protected. Enter your PIN and click Unlock.", "login-box", false, 'top'); } },
-            { trigger: () => { wtShow("Team Management", "Track employee hours easily. Click the Time Clock widget.", "time-clock-widget", false, 'bottom'); } },
+            { trigger: () => { wtShow("Team Management", "Track employee hours easily. Click the Time Clock widget at the top right of your screen.", "time-clock-widget", false, 'bottom'); } },
             { trigger: () => { wtShow("Time Clock", "Staff can quickly clock in or out here. Close this window.", "btn-close-timeclock", false, 'top'); } },
             { trigger: () => { 
                 const btnReady = document.querySelector('.btn-wt-ready');
@@ -257,26 +275,25 @@
                 const btnFulfill = document.querySelector('.btn-wt-fulfill');
                 if(btnFulfill) { btnFulfill.id = 'wt-target-fulfill'; wtShow("Capture Revenue", "The customer picked up the food. Click 'Fulfill' to clear the screen.", "wt-target-fulfill", false, 'bottom'); } else wtNextStep();
             }},
-            { trigger: () => { wtShow("System Validated", "Click 'Explore Dashboard' to see the rest of your tools.", "btn-roi-close", false, 'top'); } },
+            { trigger: () => { wtShow("System Validated", "Click 'Explore Dashboard' to see the rest of your tools.", "btn-roi-close", false, 'top'); } }, // Forced strictly to TOP to protect green box
             { trigger: () => { wtShow("Live Inventory", "Let's manage your live menu. Click the Inventory tab.", "tabBtnMenu", false, 'bottom'); } },
             { trigger: () => { 
                 const btnEdit = document.querySelector('.btn-wt-edit');
                 if(btnEdit) { btnEdit.id = 'wt-target-edit'; wtShow("Edit on the Fly", "Click Edit to instantly change prices, prep times, or descriptions.", "wt-target-edit", false, 'bottom'); } else wtNextStep();
             }},
-            { trigger: () => { wtShow("Live Editor", "Update anything here and it syncs instantly to the customer site. Save and close for now.", "btn-close-edit", false, 'top'); } },
+            { trigger: () => { wtShow("Live Editor", "Update anything here and it syncs instantly to the customer site. Save and close for now.", "btn-save-edit", false, 'top'); } },
             { trigger: () => { 
                 const btnToggle = document.querySelector('.toggle-wrapper');
                 if(btnToggle) { btnToggle.id = 'wt-target-toggle'; wtShow("Instant 86'ing", "Click this toggle to instantly mark an item 'Sold Out' on the customer menu.", "wt-target-toggle", false, 'bottom'); } else wtNextStep();
             }},
             { trigger: () => { wtShow("Store Control", "You can also control operations on the fly. Click the Settings tab.", "tabBtnSettings", false, 'bottom'); } },
-            { trigger: () => { wtShow("Rush Mode & Locations", "Here you can close the store, add +15 min wait times during a rush, or manage your parking locations.", "locationManagerBox", true, 'top'); } },
+            { trigger: () => { wtShow("Rush Mode & Locations", "Here you can close the store, add +15 min wait times during a rush, or manage your parking locations.", "locationManagerBox", true, 'top', "Next"); } },
             { trigger: () => { wtShow("Financial Reporting", "Finally, let's look at the numbers. Click the Analytics tab.", "tabBtnAnalytics", false, 'bottom'); } },
-            { trigger: () => { wtShow("Real-Time Tracking", "Your revenue and volume update automatically. You are ready to run your business!", "analytics-dash", true, 'top', "Finish Tour"); } }
+            { trigger: () => { wtShow("Real-Time Tracking", "Your revenue and volume update automatically. Your system tour is complete!", "analytics-dash", true, 'top', "Finish Tour"); } }
         ];
 
         function wtShow(title, text, targetId, showNextBtn = false, positionHint = 'auto', customBtnText = "Next") {
-            app.wtActive = true;
-            document.getElementById('wtOverlay').style.display = 'block';
+            app.wtActive = true; document.getElementById('wtOverlay').style.display = 'block';
             const tooltip = document.getElementById('wtTooltip');
             document.getElementById('wtTitle').innerText = title; document.getElementById('wtText').innerText = text;
             const nextBtn = document.getElementById('wtNextBtn');
@@ -296,8 +313,8 @@
                         current = current.parentElement;
                     }
                     tooltip.style.display = 'flex';
-                    if (positionHint === 'top') { tooltip.style.bottom = 'auto'; tooltip.style.top = '10%'; } 
-                    else if (positionHint === 'bottom') { tooltip.style.top = 'auto'; tooltip.style.bottom = '10%'; } 
+                    if (positionHint === 'top') { tooltip.style.bottom = 'auto'; tooltip.style.top = '5%'; } 
+                    else if (positionHint === 'bottom') { tooltip.style.top = 'auto'; tooltip.style.bottom = '5%'; } 
                     else {
                         const rect = target.getBoundingClientRect();
                         if (rect.top < window.innerHeight / 2) { tooltip.style.top = 'auto'; tooltip.style.bottom = '10%'; } else { tooltip.style.bottom = 'auto'; tooltip.style.top = '10%'; }
@@ -308,31 +325,24 @@
 
         function wtNextStep() {
             if (!app.wtActive) return;
-            app.wtStep++;
-            document.getElementById('wtTooltip').style.display = 'none';
+            app.wtStep++; document.getElementById('wtTooltip').style.display = 'none';
             if (app.wtStep < walkthroughSteps.length) {
                 setTimeout(() => { walkthroughSteps[app.wtStep].trigger(); }, 300);
             } else {
-                endWalkthrough();
-                showPostDemoView(); // Show closing screen at the end of the tour
+                endWalkthrough(); showPostDemoView();
             }
         }
 
         function endWalkthrough() {
-            app.wtActive = false;
-            localStorage.removeItem('wt_incoming_demo');
-            document.getElementById('wtOverlay').style.display = 'none';
-            document.getElementById('wtTooltip').style.display = 'none';
+            app.wtActive = false; localStorage.removeItem('wt_incoming_demo');
+            document.getElementById('wtOverlay').style.display = 'none'; document.getElementById('wtTooltip').style.display = 'none';
             document.querySelectorAll('.wt-spotlight, .wt-parent-override').forEach(el => el.classList.remove('wt-spotlight', 'wt-spotlight-pulse', 'wt-parent-override'));
         }
 
         window.onload = function() {
-            applyDemoConfig();
-            document.getElementById('loginView').style.display = 'flex';
-            
+            applyDemoConfig(); document.getElementById('loginView').style.display = 'flex';
             if (localStorage.getItem('wt_incoming_demo') === 'true') {
-                app.wtStep = 0;
-                document.getElementById('ownerPinInput').value = localStorage.getItem('foodtruck_pin') || '1234';
+                app.wtStep = 0; document.getElementById('ownerPinInput').value = localStorage.getItem('foodtruck_pin') || '1234';
                 setTimeout(() => { walkthroughSteps[0].trigger(); }, 500);
             }
         };
@@ -351,11 +361,8 @@
         }
 
         function lockOwnerPortal() {
-            document.getElementById('dashboardHeader').style.display = 'none';
-            document.getElementById('ownerDashboardView').style.display = 'none';
-            document.getElementById('postDemoView').style.display = 'none';
-            document.getElementById('loginView').style.display = 'flex';
-            document.getElementById('ownerPinInput').value = '';
+            document.getElementById('dashboardHeader').style.display = 'none'; document.getElementById('ownerDashboardView').style.display = 'none'; document.getElementById('postDemoView').style.display = 'none';
+            document.getElementById('loginView').style.display = 'flex'; document.getElementById('ownerPinInput').value = '';
         }
 
         function openTimeClock() { document.getElementById('timeClockModal').style.display = 'flex'; if(app.wtActive && app.wtStep === 1) wtNextStep(); }
@@ -363,14 +370,11 @@
 
         function switchOwnerTab(tabName) {
             if(app.wtActive && app.wtStep < 10 && tabName !== 'Menu' && tabName !== 'Orders') return;
-            
             ['Orders', 'Menu', 'Settings', 'Analytics'].forEach(t => {
-                const el = document.getElementById(`ownerTab${t}`);
-                const btn = document.getElementById(`tabBtn${t}`);
+                const el = document.getElementById(`ownerTab${t}`); const btn = document.getElementById(`tabBtn${t}`);
                 if (el) el.style.display = (t === tabName) ? 'block' : 'none';
                 if (btn) btn.className = (t === tabName) ? "bg-pink-600 text-white font-semibold py-2 rounded-xl text-[10px] transition shadow theme-bg" : "bg-zinc-900 border border-zinc-800 text-zinc-300 font-semibold py-2 rounded-xl text-[10px] transition";
             });
-
             if (tabName === 'Orders') renderOwnerPortal();
             if (tabName === 'Menu') { renderOwnerMenuEditor(); if(app.wtActive && app.wtStep === 6) wtNextStep(); }
             if (tabName === 'Settings') { renderSettings(); if(app.wtActive && app.wtStep === 10) wtNextStep(); }
@@ -381,14 +385,13 @@
 
         // ORDERS
         function renderOwnerPortal() {
-            const container = document.getElementById('ownerOrdersList');
-            if(!container) return;
+            const container = document.getElementById('ownerOrdersList'); if(!container) return;
             const orders = app.orders;
             if (orders.length === 0) { container.innerHTML = `<div class="text-center text-zinc-500 py-6 text-xs bg-zinc-900 border border-zinc-800 rounded-xl">No incoming active orders.</div>`; } 
             else {
                 container.innerHTML = orders.map(o => {
                     const isReady = o.status.includes('Ready');
-                    return `<div class="bg-zinc-900 border border-zinc-800 p-4 rounded-xl flex flex-col gap-3 relative"><div class="flex justify-between items-start"><div><span class="text-xs font-mono font-bold theme-text">#${o.id} (${o.name})</span><h4 class="font-bold text-sm mt-1">${o.items}</h4><div class="text-[10px] ${isReady ? 'text-blue-400' : 'text-amber-500'} mt-1 font-semibold">${o.status}</div></div><span class="font-bold text-emerald-400">$${o.total.toFixed(2)}</span></div><div class="flex gap-2 pt-2 border-t border-zinc-800/80"><button onclick="cancelOrder('${o.id}')" class="bg-zinc-950 text-rose-400 border border-rose-500/30 px-3 py-2 rounded-lg text-xs font-medium">Cancel</button><button onclick="markReady('${o.id}')" class="flex-1 btn-wt-ready ${isReady ? 'bg-zinc-800 text-zinc-500' : 'bg-blue-600 hover:bg-blue-500 text-white'} py-2 rounded-lg text-xs font-bold shadow-lg transition" ${isReady ? 'disabled' : ''}>${isReady ? 'SMS Sent ✓' : 'Mark Ready'}</button><button onclick="completeOrder('${o.id}')" class="flex-1 btn-wt-fulfill bg-emerald-600 hover:bg-emerald-500 py-2 rounded-lg text-xs font-bold text-white shadow-lg shadow-emerald-600/20">Fulfill ✓</button></div></div>`;
+                    return `<div class="bg-zinc-900 border border-zinc-800 p-4 rounded-xl flex flex-col gap-3 relative"><div class="flex justify-between items-start"><div><span class="text-xs font-mono font-bold theme-text">#${o.id} (${o.name})</span><h4 class="font-bold text-sm mt-1 whitespace-pre-line">${o.items}</h4><div class="text-[10px] ${isReady ? 'text-blue-400' : 'text-amber-500'} mt-1 font-semibold">${o.status}</div></div><span class="font-bold text-emerald-400">$${o.total.toFixed(2)}</span></div><div class="flex gap-2 pt-2 border-t border-zinc-800/80"><button onclick="cancelOrder('${o.id}')" class="bg-zinc-950 text-rose-400 border border-rose-500/30 px-3 py-2 rounded-lg text-xs font-medium">Cancel</button><button onclick="markReady('${o.id}')" class="flex-1 btn-wt-ready ${isReady ? 'bg-zinc-800 text-zinc-500' : 'bg-blue-600 hover:bg-blue-500 text-white'} py-2 rounded-lg text-xs font-bold shadow-lg transition" ${isReady ? 'disabled' : ''}>${isReady ? 'SMS Sent ✓' : 'Mark Ready'}</button><button onclick="completeOrder('${o.id}')" class="flex-1 btn-wt-fulfill bg-emerald-600 hover:bg-emerald-500 py-2 rounded-lg text-xs font-bold text-white shadow-lg shadow-emerald-600/20">Fulfill ✓</button></div></div>`;
                 }).join('');
             }
         }
@@ -397,49 +400,83 @@
         function completeOrder(id) { let orders = app.orders; const idx = orders.findIndex(x => x.id === id); if (idx > -1) { const completed = orders.splice(idx, 1)[0]; completed.status = "Fulfilled"; app.orders = orders; let history = app.history; history.unshift(completed); app.history = history; renderOwnerPortal(); renderAnalytics(); document.getElementById('roiModal').style.display = 'flex'; if(app.wtActive && app.wtStep === 4) wtNextStep(); } }
         function closeRoiModal() { document.getElementById('roiModal').style.display = 'none'; if(app.wtActive && app.wtStep === 5) wtNextStep(); }
 
-        // MENU
+        // MENU (Now with Live Write-Back to Config)
         function renderOwnerMenuEditor() {
-            const container = document.getElementById('ownerMenuList');
-            if (!container || app.menu.length === 0) return;
-            container.innerHTML = app.menu.map((item) => `
+            const container = document.getElementById('ownerMenuList'); if (!container || app.menu.length === 0) return;
+            container.innerHTML = app.menu.map((item) => {
+                let priceStr = `$${item.price.toFixed(2)}`;
+                if(item.salePrice && item.salePrice > 0) priceStr = `<span class="line-through text-zinc-600 mr-1">$${item.price.toFixed(2)}</span> <span class="text-red-500 font-bold">$${item.salePrice.toFixed(2)}</span>`;
+                return `
                 <div class="bg-zinc-900 border border-zinc-800 p-4 rounded-xl flex justify-between items-center text-xs">
-                    <div><div class="font-bold text-zinc-100">${item.name}</div><div class="theme-text text-[11px] mt-0.5">$${item.price.toFixed(2)} • Prep: ${item.prep}m</div></div>
-                    <div class="flex items-center gap-3"><button onclick="openEditItem('${item.name}', ${item.price}, ${item.prep})" class="btn-wt-edit bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1.5 rounded-lg text-[10px] font-semibold transition">Edit</button><span class="text-[10px] text-zinc-500 font-medium uppercase tracking-wider hidden sm:inline">86 / Sold Out</span><div class="relative inline-block w-10 mr-1 align-middle select-none transition duration-200 ease-in toggle-wrapper" onclick="toggleSoldOut(this)"><input type="checkbox" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-zinc-700 z-10 transition-transform duration-200 ease-in-out"/><label class="toggle-label block overflow-hidden h-5 rounded-full bg-zinc-700 cursor-pointer"></label></div></div>
-                </div>`).join('');
+                    <div><div class="font-bold text-zinc-100">${item.name}</div><div class="theme-text text-[11px] mt-0.5">${priceStr} • Prep: ${item.prep}m</div></div>
+                    <div class="flex items-center gap-3"><button onclick="openEditItem(${item.id})" class="btn-wt-edit bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1.5 rounded-lg text-[10px] font-semibold transition">Edit</button><span class="text-[10px] text-zinc-500 font-medium uppercase tracking-wider hidden sm:inline">86 / Sold Out</span><div class="relative inline-block w-10 mr-1 align-middle select-none transition duration-200 ease-in toggle-wrapper" onclick="toggleSoldOut(this)"><input type="checkbox" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-zinc-700 z-10 transition-transform duration-200 ease-in-out"/><label class="toggle-label block overflow-hidden h-5 rounded-full bg-zinc-700 cursor-pointer"></label></div></div>
+                </div>`
+            }).join('');
         }
-        function openEditItem(name, price, prep) { document.getElementById('editName').value = name; document.getElementById('editPrice').value = price.toFixed(2); document.getElementById('editPrep').value = prep; document.getElementById('editItemModal').style.display = 'flex'; if(app.wtActive && app.wtStep === 7) wtNextStep(); }
-        function closeEditItem() { document.getElementById('editItemModal').style.display = 'none'; if(app.wtActive && app.wtStep === 8) wtNextStep(); }
+        function openEditItem(id) { 
+            const item = app.menu.find(m => m.id === id); app.currentEditId = id;
+            document.getElementById('editName').value = item.name;
+            document.getElementById('editDesc').value = item.desc || "";
+            document.getElementById('editPrice').value = item.price.toFixed(2);
+            document.getElementById('editSalePrice').value = item.salePrice ? item.salePrice.toFixed(2) : "";
+            document.getElementById('editPrep').value = item.prep;
+            document.getElementById('editItemModal').style.display = 'flex'; 
+            if(app.wtActive && app.wtStep === 7) wtNextStep(); 
+        }
+        function closeEditItem() { document.getElementById('editItemModal').style.display = 'none'; }
+        
+        function saveEditItem() {
+            if(!app.currentEditId) return;
+            const configData = JSON.parse(localStorage.getItem('demo_config'));
+            const menuIdx = configData.menu.findIndex(m => (900 + configData.menu.indexOf(m)) === app.currentEditId);
+            if (menuIdx > -1) {
+                configData.menu[menuIdx].name = document.getElementById('editName').value.trim();
+                configData.menu[menuIdx].desc = document.getElementById('editDesc').value.trim();
+                configData.menu[menuIdx].price = parseFloat(document.getElementById('editPrice').value) || 0;
+                const sp = parseFloat(document.getElementById('editSalePrice').value);
+                configData.menu[menuIdx].salePrice = (sp && sp > 0) ? sp : null;
+                configData.menu[menuIdx].prep = parseInt(document.getElementById('editPrep').value) || 3;
+                localStorage.setItem('demo_config', JSON.stringify(configData));
+                renderOwnerMenuEditor(); // Refresh UI
+            }
+            document.getElementById('editItemModal').style.display = 'none';
+            if(app.wtActive && app.wtStep === 8) wtNextStep();
+        }
+
         function toggleSoldOut(element) { const checkbox = element.querySelector('.toggle-checkbox'); checkbox.checked = !checkbox.checked; if(app.wtActive && app.wtStep === 9) wtNextStep(); }
 
         // SETTINGS & LOCATIONS
         function renderSettings() {
-            // Status
             const status = localStorage.getItem('foodtruck_store_status') || 'open';
             document.getElementById('btnStatusOpen').className = status === 'open' ? "flex-1 py-2 rounded-lg text-xs font-bold transition bg-emerald-600 text-white shadow" : "flex-1 py-2 rounded-lg text-xs font-bold transition bg-zinc-950 text-zinc-500 border border-zinc-800";
             document.getElementById('btnStatusClosed').className = status === 'closed' ? "flex-1 py-2 rounded-lg text-xs font-bold transition bg-rose-600 text-white shadow" : "flex-1 py-2 rounded-lg text-xs font-bold transition bg-zinc-950 text-zinc-500 border border-zinc-800";
             
-            // Rush
             const rush = parseInt(localStorage.getItem('foodtruck_rush_mode')) || 0;
             const btnR0 = document.getElementById('btnRush0'), btnR15 = document.getElementById('btnRush15'), btnR30 = document.getElementById('btnRush30');
             btnR0.className = rush === 0 ? "py-2 rounded-lg text-[10px] font-bold transition bg-pink-600 text-white theme-bg shadow" : "py-2 rounded-lg text-[10px] font-bold transition bg-zinc-950 text-zinc-400 border border-zinc-800";
             btnR15.className = rush === 15 ? "py-2 rounded-lg text-[10px] font-bold transition bg-amber-500 text-white shadow" : "py-2 rounded-lg text-[10px] font-bold transition bg-zinc-950 text-amber-500 border border-amber-500/30";
             btnR30.className = rush === 30 ? "py-2 rounded-lg text-[10px] font-bold transition bg-red-600 text-white shadow" : "py-2 rounded-lg text-[10px] font-bold transition bg-zinc-950 text-red-500 border border-red-500/30";
 
-            // Locations
+            const activeLoc = localStorage.getItem('foodtruck_active_location') || "Downtown Main Street (Live View)";
             const locs = app.locations;
-            const activeLocHTML = locs.map((loc, i) => `
+            const activeLocHTML = locs.map((loc, i) => {
+                const isActive = (loc === activeLoc);
+                return `
                 <div class="flex justify-between items-center bg-zinc-950 p-2.5 rounded-lg border border-zinc-800">
-                    <span class="text-xs text-zinc-200 truncate cursor-pointer hover:text-pink-400" onclick="setActiveLoc('${loc}')">${loc}</span>
-                    <button onclick="deleteLocation(${i})" class="text-[10px] text-rose-500 hover:underline bg-rose-500/10 px-2 py-1 rounded">Delete</button>
+                    <div class="flex items-center gap-2 cursor-pointer hover:text-pink-400 truncate flex-1" onclick="setActiveLoc('${loc}')">
+                        <div class="w-3 h-3 rounded-full border ${isActive ? 'bg-emerald-500 border-emerald-500' : 'border-zinc-600 bg-transparent'}"></div>
+                        <span class="text-xs text-zinc-200 ${isActive ? 'font-bold' : ''}">${loc}</span>
+                    </div>
+                    <button onclick="deleteLocation(${i})" class="text-[10px] text-rose-500 hover:underline bg-rose-500/10 px-2 py-1 rounded ml-2">Delete</button>
                 </div>
-            `).join('');
-            document.getElementById('activeLocationsList').innerHTML = activeLocHTML || '<div class="text-xs text-zinc-600 italic">No locations active.</div>';
+            `}).join('');
+            document.getElementById('activeLocationsList').innerHTML = activeLocHTML || '<div class="text-xs text-zinc-600 italic">No locations added.</div>';
 
             const delLocs = app.deletedLocations;
             const delLocHTML = delLocs.map((loc, i) => `
                 <div class="flex justify-between items-center bg-zinc-900/50 p-2.5 rounded-lg border border-zinc-800/50">
                     <span class="text-xs text-zinc-500 truncate line-through">${loc}</span>
-                    <button onclick="restoreLocation(${i})" class="text-[10px] text-emerald-500 hover:underline">Restore</button>
+                    <button onclick="restoreLocation(${i})" class="text-[10px] text-emerald-500 hover:underline border border-emerald-500/30 px-2 py-1 rounded">Restore</button>
                 </div>
             `).join('');
             document.getElementById('deletedLocationsList').innerHTML = delLocHTML || '<div class="text-xs text-zinc-600 italic">Trash is empty.</div>';
@@ -449,14 +486,16 @@
         function setRushMode(mins) { localStorage.setItem('foodtruck_rush_mode', mins); renderSettings(); }
         
         function addLocation() {
-            const input = document.getElementById('newLocationInput');
-            const val = input.value.trim();
+            const input = document.getElementById('newLocationInput'); const val = input.value.trim();
             if(val) { let locs = app.locations; locs.push(val); app.locations = locs; input.value = ''; renderSettings(); }
         }
         function deleteLocation(idx) {
             let locs = app.locations; let delLocs = app.deletedLocations;
-            delLocs.push(locs.splice(idx, 1)[0]);
-            app.locations = locs; app.deletedLocations = delLocs; renderSettings();
+            const deleted = locs.splice(idx, 1)[0]; delLocs.push(deleted);
+            app.locations = locs; app.deletedLocations = delLocs;
+            // Fallback if they delete active location
+            if(localStorage.getItem('foodtruck_active_location') === deleted) localStorage.removeItem('foodtruck_active_location');
+            renderSettings();
         }
         function restoreLocation(idx) {
             let locs = app.locations; let delLocs = app.deletedLocations;
@@ -465,46 +504,34 @@
         }
         function setActiveLoc(name) {
             localStorage.setItem('foodtruck_active_location', name);
-            alert(`Customer menu location updated to:\n${name}`);
+            renderSettings();
+            alert(`Customer menu location actively updated to:\n${name}`);
         }
 
         function updatePin() {
-            const pin = document.getElementById('newPinInput').value.trim();
-            if(pin.length >= 4 && pin.length <= 6) {
-                localStorage.setItem('foodtruck_pin', pin);
-                alert("Security PIN successfully updated.");
-                document.getElementById('newPinInput').value = '';
-            } else { alert("PIN must be 4 to 6 alphanumeric characters."); }
+            const p1 = document.getElementById('newPinInput').value.trim();
+            const p2 = document.getElementById('confirmPinInput').value.trim();
+            if(p1.length < 4 || p1.length > 6) { alert("PIN must be 4 to 6 alphanumeric characters."); return; }
+            if(p1 !== p2) { alert("PINs do not match. Please re-enter."); return; }
+            localStorage.setItem('foodtruck_pin', p1);
+            alert("Security PIN successfully updated.");
+            document.getElementById('newPinInput').value = ''; document.getElementById('confirmPinInput').value = '';
         }
 
         // ANALYTICS & POST-DEMO
         function renderAnalytics() {
-            const history = app.history;
-            const totalRev = history.reduce((sum, h) => sum + h.total, 0);
-            const volume = history.length;
-            const aov = volume > 0 ? (totalRev / volume) : 0;
+            const history = app.history; const totalRev = history.reduce((sum, h) => sum + h.total, 0); const volume = history.length; const aov = volume > 0 ? (totalRev / volume) : 0;
             let topItem = "N/A"; if(history.length > 0 && app.menu.length > 0) topItem = app.menu[0].name;
-            document.getElementById('statDaily').innerText = `$${totalRev.toFixed(2)}`;
-            document.getElementById('statVolume').innerText = volume;
-            document.getElementById('statAov').innerText = `$${aov.toFixed(2)}`;
-            document.getElementById('statTopItem').innerText = topItem;
+            document.getElementById('statDaily').innerText = `$${totalRev.toFixed(2)}`; document.getElementById('statVolume').innerText = volume; document.getElementById('statAov').innerText = `$${aov.toFixed(2)}`; document.getElementById('statTopItem').innerText = topItem;
         }
 
         function showPostDemoView() {
-            document.getElementById('ownerDashboardView').style.display = 'none';
-            document.getElementById('header-controls').style.display = 'none'; // Hide lock/clock
+            document.getElementById('ownerDashboardView').style.display = 'none'; document.getElementById('header-controls').style.display = 'none';
             document.getElementById('postDemoView').style.display = 'flex';
         }
 
-        function exitDemo() {
-            localStorage.clear();
-            window.location.href = 'index.html';
-        }
-
-        function continueDemo() {
-            window.location.href = 'customer.html';
-        }
-
+        function exitDemo() { localStorage.clear(); window.location.href = 'index.html'; }
+        function continueDemo() { window.location.href = 'customer.html'; }
         function clearHistoryLogs() { if (confirm("Clear all order history and analytics logs?")) { app.history = []; app.orders = []; renderOwnerPortal(); renderAnalytics(); } }
     </script>
 </body>
