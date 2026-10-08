@@ -53,23 +53,25 @@
                 <span class="text-4xl" id="dynamic-emoji">🌮</span>
             </div>
             <h1 id="dynamic-truck-name" class="text-3xl font-serif font-bold italic tracking-wide mb-1">Storefront</h1>
-            <p id="dynamic-subheader" class="text-zinc-400 text-sm mb-3">Fresh Local Eats</p>
+            <p id="dynamic-subheader" class="text-zinc-400 text-sm mb-5">Fresh Local Eats</p>
             
-            <div class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 mb-4 text-left shadow-md">
-                <div class="flex justify-between items-center mb-1">
-                    <label class="text-[11px] text-zinc-400 font-medium">📍 Active Truck Location (Click to Map):</label>
+            <!-- Grouped Status Area for Walkthrough -->
+            <div id="status-group" class="w-full relative rounded-xl transition-all">
+                <div class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 mb-3 text-left shadow-md">
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-[11px] text-zinc-400 font-medium">📍 Active Truck Location (Click to Map):</label>
+                    </div>
+                    <div id="activeLocationDisplay" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2.5 text-xs text-zinc-300 font-medium">Downtown Main Street</div>
                 </div>
-                <div id="activeLocationDisplay" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2.5 text-xs text-zinc-300 font-medium">Downtown Main Street</div>
-            </div>
 
-            <!-- Dynamic Status Badges -->
-            <div id="storeStatusBadge" class="bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-4 py-2 text-xs mb-3 text-emerald-400 flex items-center gap-2 w-full justify-center">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span id="storeStatusText">Open Now • Accepting Orders</span>
-            </div>
+                <div id="storeStatusBadge" class="bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-4 py-2 text-xs mb-3 text-emerald-400 flex items-center gap-2 w-full justify-center">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span id="storeStatusText">Open Now • Accepting Orders</span>
+                </div>
 
-            <div id="rushStatusContainer" class="w-full"></div>
-            <div id="saleBadgeContainer" class="w-full"></div>
+                <div id="rushStatusContainer" class="w-full"></div>
+                <div id="saleBadgeContainer" class="w-full"></div>
+            </div>
 
             <div class="w-full space-y-3 relative mt-3">
                 <button onclick="switchView('menu')" id="btn-start-order" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-semibold py-3.5 rounded-xl transition shadow-lg shadow-pink-600/25 theme-bg theme-shadow">Start Order</button>
@@ -150,7 +152,7 @@
     <!-- Cart Modal -->
     <div id="cartModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-zinc-900 border border-zinc-800 w-full max-w-sm rounded-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto" id="cart-content-box">
-            <div class="flex justify-between items-center border-b border-zinc-800 pb-3"><h3 class="font-bold text-lg">Your Order Cart</h3><button onclick="closeCartModal()" class="text-zinc-400 hover:text-white text-sm">✕</button></div>
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-3"><h3 class="font-bold text-lg">Your Order</h3><button onclick="closeCartModal()" class="text-zinc-400 hover:text-white text-sm">✕</button></div>
             
             <div id="cartWaitTimeContainer" class="bg-amber-500/10 border border-amber-500/30 rounded-lg p-2.5 flex items-center justify-between text-xs">
                 <span class="text-amber-400 font-medium">⏱️ Wait Time:</span>
@@ -212,7 +214,6 @@
                 app.menu = c.menu.map((item, index) => {
                     item.id = index + 1;
                     item.category = "⭐ " + (c.truckName || "Signature") + " Menu";
-                    // Ensure salePrice is parsed if it exists
                     if(item.salePrice && parseFloat(item.salePrice) > 0) item.salePrice = parseFloat(item.salePrice);
                     return item;
                 });
@@ -247,7 +248,7 @@
             const saleContainer = document.getElementById('saleBadgeContainer');
             const hasSale = app.menu.some(m => m.salePrice && m.salePrice > 0);
             if (hasSale && storeStatus !== 'closed') {
-                saleContainer.innerHTML = `<div class="bg-red-600/10 border border-red-600/50 rounded-xl px-4 py-2 text-xs mb-3 text-red-500 flex items-center justify-center font-bold shadow-lg shadow-red-500/10 animate-pulse">🏷️ Sale</div>`;
+                saleContainer.innerHTML = `<div class="bg-red-600/10 border border-red-600/50 rounded-xl px-4 py-2 text-xs mb-3 text-red-500 flex items-center justify-center font-bold shadow-lg shadow-red-500/10">Sale</div>`;
             }
 
             // CSS Override
@@ -263,13 +264,17 @@
             return true;
         }
 
-        // FAIL-SAFE WALKTHROUGH ENGINE
+        // FULL 10-STEP CUSTOMER WALKTHROUGH ENGINE
         const walkthroughSteps = [
             { trigger: () => { const name = app.config?.ownerName || "Partner"; wtShow(`Welcome, ${name}!`, "Your digital storefront is live. Let's place a test order to see the automation.", null, true); } },
-            { trigger: () => { wtShow("The Front Door", "Click the Start Order button to enter your menu.", "btn-start-order", false); } },
+            { trigger: () => { wtShow("Real-Time Sync", "Your active location, open status, and rush-hour wait times update instantly from your kitchen display.", "status-group", false, 'top'); } },
+            { trigger: () => { wtShow("The Front Door", "Click the Start Order button to enter your menu.", "btn-start-order", false, 'extreme-bottom'); } },
+            { trigger: () => { 
+                wtShow("Live Menu Control", "Notice the 'Sale' tag and the greyed-out 'Sold Out' item? You control all of this instantly from the backend.", null, true, 'top', true, "Next"); 
+            }},
             { trigger: () => {
-                const firstAddBtn = document.querySelector('.btn-add-item');
-                if(firstAddBtn) { firstAddBtn.id = 'wt-target-add-btn'; wtShow("Smart Menu Structure", "Notice the prep times. The system uses these to calculate live wait times. Click 'Add'.", "wt-target-add-btn", false); } 
+                const firstAddBtn = document.querySelector('.btn-add-item:not([disabled])');
+                if(firstAddBtn) { firstAddBtn.id = 'wt-target-add-btn'; wtShow("Smart Menu Structure", "Notice the prep times. The system uses these to calculate live wait times. Click 'Add'.", "wt-target-add-btn", false, 'auto', true); } 
                 else { wtNextStep(); }
             }},
             { trigger: () => {
@@ -277,21 +282,19 @@
                 if(meatSelect && meatSelect.options.length > 1) meatSelect.selectedIndex = 1; 
                 wtShow("Upcharges & Logic", "If an item has modifications, the system automatically adjusts the price. Confirm and add this item.", "btn-confirm-add", false, 'top');
             }},
-            { trigger: () => { wtShow("Dynamic Cart", "The cart icon now tracks their total. Let's check out.", "btn-view-cart", false); } },
+            { trigger: () => { wtShow("Dynamic Cart", "The cart icon now tracks their total. Let's check out.", "btn-view-cart", false, 'auto', true); } },
             { trigger: () => {
                 document.getElementById('customerName').value = app.config?.ownerName || "Test Customer";
-                // Tooltip pushed to bottom so the wait time is completely unobstructed
                 wtShow("Wait Time Calculation", "Look at the top. The system calculated an exact wait estimate based on prep times. Click Place Order.", "btn-place-order", false, 'extreme-bottom');
             }},
             { trigger: () => { wtShow("Ticket Generation", "Success! The system collected the money and generated a ticket. View the customer tracker.", "btn-view-tracker", false, 'top'); } },
             { trigger: () => {
                 document.getElementById('btn-route-owner').classList.remove('hidden');
-                // Handoff placed directly in the center to avoid the tracker text and the fixed button
                 wtShow("Backend Handoff", "The customer waits here. Now, let's jump to your Kitchen Display to fulfill this order.", "btn-route-owner", false, 'center', true);
             }}
         ];
 
-        function wtShow(title, text, targetId, showNextBtn = false, positionHint = 'auto', hideOverlay = false) {
+        function wtShow(title, text, targetId, showNextBtn = false, positionHint = 'auto', hideOverlay = false, customBtnText = "Got it") {
             app.wtActive = true;
             document.getElementById('wtOverlay').style.display = hideOverlay ? 'none' : 'block';
             
@@ -301,6 +304,7 @@
             
             const nextBtn = document.getElementById('wtNextBtn');
             nextBtn.style.display = showNextBtn ? 'block' : 'none';
+            nextBtn.innerText = customBtnText;
             nextBtn.onclick = () => { wtNextStep(); };
             
             document.querySelectorAll('.wt-spotlight').forEach(el => el.classList.remove('wt-spotlight', 'wt-spotlight-pulse'));
@@ -317,7 +321,6 @@
                         current = current.parentElement;
                     }
 
-                    // Strict Tooltip Positioning
                     tooltip.style.display = 'flex';
                     if (positionHint === 'top') { tooltip.style.bottom = 'auto'; tooltip.style.top = '5%'; tooltip.style.transform = 'translateX(-50%)'; } 
                     else if (positionHint === 'bottom') { tooltip.style.top = 'auto'; tooltip.style.bottom = '5%'; tooltip.style.transform = 'translateX(-50%)'; } 
@@ -330,7 +333,9 @@
                     }
                 }
             } else {
-                tooltip.style.display = 'flex'; tooltip.style.bottom = 'auto'; tooltip.style.top = '40%'; tooltip.style.transform = 'translateX(-50%)';
+                tooltip.style.display = 'flex'; 
+                if (positionHint === 'top') { tooltip.style.bottom = 'auto'; tooltip.style.top = '15%'; tooltip.style.transform = 'translateX(-50%)'; }
+                else { tooltip.style.bottom = 'auto'; tooltip.style.top = '40%'; tooltip.style.transform = 'translateX(-50%)'; }
             }
         }
 
@@ -360,7 +365,7 @@
                 const el = document.getElementById(v); if (el) el.style.display = 'none';
             });
             if (view === 'landing') document.getElementById('landingView').style.display = 'flex';
-            if (view === 'menu') { document.getElementById('menuView').style.display = 'block'; renderMenu(); if(app.wtActive && app.wtStep === 1) wtNextStep(); }
+            if (view === 'menu') { document.getElementById('menuView').style.display = 'block'; renderMenu(); if(app.wtActive && app.wtStep === 2) wtNextStep(); }
             if (view === 'tracker') { document.getElementById('trackerView').style.display = 'block'; renderTracker(); }
         }
 
@@ -389,8 +394,15 @@
                             if(item.salePrice && item.salePrice > 0) {
                                 priceHTML = `<span class="text-sm font-semibold line-through text-zinc-500 mr-1">$${item.price.toFixed(2)}</span><span class="text-sm font-bold text-red-500">$${item.salePrice.toFixed(2)}</span>`;
                             }
+                            
+                            const isSoldOut = item.soldOut;
+                            const opacityClass = isSoldOut ? 'opacity-50 grayscale pointer-events-none' : '';
+                            const btnHtml = isSoldOut 
+                                ? `<button disabled class="text-zinc-500 bg-zinc-800 px-3 py-1.5 rounded-lg text-xs font-bold h-8 min-w-[55px]">Sold Out</button>`
+                                : `<button onclick="openItemModal(${item.id})" class="btn-add-item text-white px-3 py-1.5 rounded-lg text-xs font-semibold h-8 min-w-[55px] shadow theme-bg">Add +</button>`;
+                            
                             return `
-                            <div class="bg-zinc-900 border border-zinc-800 p-4 rounded-xl flex justify-between items-center">
+                            <div class="bg-zinc-900 border border-zinc-800 p-4 rounded-xl flex justify-between items-center ${opacityClass}">
                                 <div>
                                     <h4 class="font-bold text-sm">${item.name}</h4>
                                     <p class="text-xs text-zinc-400 mt-0.5">${item.desc}</p>
@@ -399,7 +411,7 @@
                                         <span class="text-[10px] text-zinc-500">(~${item.prep})</span>
                                     </div>
                                 </div>
-                                <button onclick="openItemModal(${item.id})" class="btn-add-item text-white px-3 py-1.5 rounded-lg text-xs font-semibold h-8 min-w-[55px] shadow theme-bg">Add +</button>
+                                ${btnHtml}
                             </div>
                         `}).join('')}
                     </div>
@@ -440,7 +452,7 @@
             }
 
             document.getElementById('itemModal').style.display = 'flex';
-            if(app.wtActive && app.wtStep === 2) wtNextStep(); 
+            if(app.wtActive && app.wtStep === 4) wtNextStep(); 
         }
 
         function closeItemModal() {
@@ -464,7 +476,6 @@
                 if (meatSelect.selectedIndex > 0 && currentModalItem.premiumUpcharge) itemUpcharge += currentModalItem.premiumUpcharge;
             }
 
-            // Use sale price if it exists, otherwise standard price
             const basePrice = (currentModalItem.salePrice && currentModalItem.salePrice > 0) ? currentModalItem.salePrice : currentModalItem.price;
             const effectivePrice = basePrice + itemUpcharge;
             const prepMins = parseInt(currentModalItem.prep) || 3; 
@@ -472,7 +483,7 @@
             app.cart.push({ name: itemName, price: effectivePrice, quantity: currentModalQtyVal, prep: prepMins });
             document.getElementById('itemModal').style.display = 'none';
             updateCartBadges();
-            if(app.wtActive && app.wtStep === 3) wtNextStep(); 
+            if(app.wtActive && app.wtStep === 5) wtNextStep(); 
         }
 
         function updateCartBadges() {
@@ -502,7 +513,7 @@
             `).join('');
             
             document.getElementById('cartModal').style.display = 'flex';
-            if(app.wtActive && app.wtStep === 4) wtNextStep(); 
+            if(app.wtActive && app.wtStep === 6) wtNextStep(); 
         }
 
         function closeCartModal() { 
@@ -528,7 +539,7 @@
             app.orders.unshift(newOrder);
             app.cart = []; 
             document.getElementById('cartModal').style.display = 'none'; 
-            document.getElementById('customerNotes').value = ''; // Clear notes
+            document.getElementById('customerNotes').value = ''; 
             updateCartBadges(); 
 
             document.getElementById('successTicketNum').innerText = `#${newOrder.id}`;
@@ -536,13 +547,13 @@
             
             document.getElementById('btn-route-owner').classList.remove('hidden');
             localStorage.setItem('wt_incoming_demo', 'true');
-            if(app.wtActive && app.wtStep === 5) wtNextStep(); 
+            if(app.wtActive && app.wtStep === 7) wtNextStep(); 
         }
 
         function closeSuccessModal() {
             document.getElementById('successModal').style.display = 'none';
             switchView('tracker');
-            if(app.wtActive && app.wtStep === 6) wtNextStep(); 
+            if(app.wtActive && app.wtStep === 8) wtNextStep(); 
         }
 
         function renderTracker() {
@@ -557,7 +568,6 @@
                 </div>
             `).join('');
             
-            // Loop feature: if orders exist, ensure owner button is always visible
             if(app.orders.length > 0) document.getElementById('btn-route-owner').classList.remove('hidden');
         }
 
