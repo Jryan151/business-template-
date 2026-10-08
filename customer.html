@@ -11,7 +11,6 @@
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(2px);
             z-index: 9998; display: none;
-            pointer-events: auto; /* Block clicks on the background */
         }
         .wt-tooltip {
             position: fixed; z-index: 10000; background: #FFFFFF; color: #181719;
@@ -28,7 +27,7 @@
             border-radius: 6px; font-weight: 600; cursor: pointer; text-align: center; font-size: 0.8rem; margin-top: 0.5rem;
         }
         
-        /* The spotlight elevates the element and allows it to be clicked through the overlay */
+        /* The spotlight elevates the element so it can be clicked through the overlay */
         .wt-spotlight { position: relative; z-index: 9999 !important; border-radius: inherit; pointer-events: auto !important; }
         .wt-spotlight-pulse { animation: wtPulse 2s infinite; }
         @keyframes wtPulse { 0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.5); } 70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); } }
@@ -47,7 +46,8 @@
         <button class="wt-tooltip-btn" id="wtNextBtn">Got it</button>
     </div>
 
-    <div class="max-w-md mx-auto w-full flex-grow relative z-10">
+    <!-- Removed restrictive z-index traps from layout containers -->
+    <div class="max-w-md mx-auto w-full flex-grow">
         <!-- Landing View -->
         <div id="landingView" class="p-6 flex flex-col items-center justify-center min-h-[90vh] text-center">
             <div class="w-24 h-24 rounded-full border-2 border-pink-500 p-1 mb-4 flex items-center justify-center shadow-lg shadow-pink-500/10 theme-border theme-shadow">
@@ -68,7 +68,7 @@
                 <span id="storeStatusText">Open Now • Until 6:00 PM</span>
             </div>
 
-            <div class="w-full space-y-3 relative z-20">
+            <div class="w-full space-y-3">
                 <button onclick="switchView('menu')" id="btn-start-order" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-semibold py-3.5 rounded-xl transition shadow-lg shadow-pink-600/25 theme-bg theme-shadow">Start Order</button>
             </div>
 
@@ -90,9 +90,9 @@
                 <div id="popularHighlightsContainer" class="grid grid-cols-3 gap-2 text-center mt-2"></div>
             </div>
 
-            <div id="menuContainer" class="space-y-6 relative z-20"></div>
+            <div id="menuContainer" class="space-y-6"></div>
             
-            <div class="fixed bottom-4 left-4 right-4 max-w-md mx-auto z-40">
+            <div class="fixed bottom-4 left-4 right-4 max-w-md mx-auto z-40" id="cartWrapper">
                 <button onclick="openCartModal()" id="btn-view-cart" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-semibold py-3 rounded-xl shadow-xl flex justify-between px-5 items-center transition-all theme-bg">
                     <span id="cartCountBadge" class="bg-pink-700 px-2 py-0.5 rounded-md text-xs font-bold theme-bg-dark">0 items</span>
                     <span>View Cart</span>
@@ -319,7 +319,16 @@
                 const target = document.getElementById(targetId);
                 if (target) {
                     target.classList.add('wt-spotlight', 'wt-spotlight-pulse');
-                    target.addEventListener('click', wtTargetClicked);
+                    
+                    // Elevate parent if trapped in a fixed container (like the Cart bar)
+                    const fixedParent = target.closest('.fixed');
+                    if (fixedParent) {
+                        fixedParent.dataset.oldZ = fixedParent.style.zIndex;
+                        fixedParent.style.zIndex = '10000';
+                    }
+
+                    // Attach the event listener to advance the guide ONLY once clicked
+                    target.addEventListener('click', wtTargetClicked, { once: true });
                     
                     tooltip.style.display = 'flex';
                     tooltip.style.top = '15%';
@@ -334,8 +343,8 @@
             }
         }
 
-        // Wait for the UI action to finish, THEN advance the guide
-        function wtTargetClicked() {
+        // Wait a split second for the UI action to finish, THEN advance the guide
+        function wtTargetClicked(e) {
             setTimeout(() => { wtNextStep(); }, 400); 
         }
 
@@ -357,6 +366,13 @@
             document.querySelectorAll('.wt-spotlight').forEach(el => {
                 el.classList.remove('wt-spotlight', 'wt-spotlight-pulse');
                 el.removeEventListener('click', wtTargetClicked);
+            });
+            // Reset any elevated fixed containers
+            document.querySelectorAll('.fixed').forEach(el => {
+                if (el.dataset.oldZ !== undefined) {
+                    el.style.zIndex = el.dataset.oldZ;
+                    delete el.dataset.oldZ;
+                }
             });
         }
 
