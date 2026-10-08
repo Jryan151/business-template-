@@ -213,7 +213,7 @@
 
     <div id="slides-container">
         
-        <!-- Slide 1: Owner Details (NEW) -->
+        <!-- Slide 1: Owner Details -->
         <div class="slide active" id="slide-1">
             <h1>Let's get acquainted.</h1>
             <p class="subtitle">Who is running the show?</p>
@@ -230,7 +230,7 @@
             <button class="btn-primary" onclick="submitSlide2()">Next</button>
         </div>
 
-        <!-- Slide 3: Aesthetics (Updated with Disclaimer) -->
+        <!-- Slide 3: Aesthetics -->
         <div class="slide" id="slide-3">
             <h1>Which aesthetic matches your vibe?</h1>
             <p class="subtitle" style="font-size: 0.9rem;">(Note: These are quick test themes. We implement your exact custom hex brand colors in the final system.)</p>
@@ -292,19 +292,18 @@
             themeName: "",
             themeColor: "",
             themeClass: "",
-            cuisineSubheader: "Fresh Local Eats", // Default
-            cuisineEmoji: "📍", // Default
+            cuisineSubheader: "", 
+            cuisineEmoji: "", 
             menu: []
         };
 
-        // Expanded presets designed specifically for the walkthrough demo
         const presets = {
             mexican: {
                 subheader: "Authentic Mexican Food",
                 emoji: "🌮",
                 items: [
-                    { name: "Street Taco", price: 3.50, desc: "Meat, cilantro, onion.", prep: "2 mins", hasMeat: true, meats: "Asada, Pastor, Pollo, Camaron", camaronUpcharge: 1.00, hasFlourTortillaOption: false, isDrink: false },
-                    { name: "Super Quesadilla", price: 12.00, desc: "Meat & melted cheese.", prep: "5 mins", hasMeat: true, meats: "Asada, Pastor, Pollo", camaronUpcharge: null, hasFlourTortillaOption: true, isDrink: false },
+                    { name: "Street Taco", price: 3.50, desc: "Meat, cilantro, onion.", prep: "2 mins", hasMeat: true, meats: "Asada, Pastor, Pollo, Camaron", premiumUpcharge: 1.00, hasFlourTortillaOption: false, isDrink: false },
+                    { name: "Super Quesadilla", price: 12.00, desc: "Meat & melted cheese.", prep: "5 mins", hasMeat: true, meats: "Asada, Pastor, Pollo", premiumUpcharge: null, hasFlourTortillaOption: true, isDrink: false },
                     { name: "Agua Fresca (32oz)", price: 5.00, desc: "Ice cold fruit drinks.", prep: "1 mins", hasMeat: false, isDrink: true, options: ["Horchata", "Jamaica", "Limonada"] }
                 ]
             },
@@ -312,7 +311,7 @@
                 subheader: "Premium Burgers & Fries",
                 emoji: "🍔",
                 items: [
-                    { name: "Double Smashburger", price: 11.00, desc: "Two beef patties, cheese, house sauce.", prep: "6 mins", hasMeat: true, meats: "Standard, Add Bacon", camaronUpcharge: 2.00, hasFlourTortillaOption: false, isDrink: false }, // Using camaronUpcharge logic as a generic upcharge for bacon
+                    { name: "Double Smashburger", price: 11.00, desc: "Two beef patties, cheese, house sauce.", prep: "6 mins", hasMeat: true, meats: "Standard, Add Bacon", premiumUpcharge: 2.00, hasFlourTortillaOption: false, isDrink: false }, 
                     { name: "Loaded Fries", price: 8.00, desc: "Crispy fries smothered in cheese.", prep: "4 mins", hasMeat: false, hasFlourTortillaOption: false, isDrink: false },
                     { name: "Hand-Spun Shake", price: 6.00, desc: "Thick ice cream shakes.", prep: "2 mins", hasMeat: false, isDrink: true, options: ["Vanilla Bean", "Chocolate", "Strawberry"] }
                 ]
@@ -322,7 +321,7 @@
                 emoji: "🥡",
                 items: [
                     { name: "Pork Belly Bao (2)", price: 9.00, desc: "Steamed buns, glazed pork belly.", prep: "5 mins", hasMeat: false, hasFlourTortillaOption: false, isDrink: false },
-                    { name: "Spicy Peanut Noodles", price: 13.00, desc: "Wok-tossed noodles.", prep: "7 mins", hasMeat: true, meats: "Chicken, Tofu, Shrimp", camaronUpcharge: 3.00, hasFlourTortillaOption: false, isDrink: false },
+                    { name: "Spicy Peanut Noodles", price: 13.00, desc: "Wok-tossed noodles.", prep: "7 mins", hasMeat: true, meats: "Chicken, Tofu, Shrimp", premiumUpcharge: 3.00, hasFlourTortillaOption: false, isDrink: false },
                     { name: "Thai Iced Tea", price: 4.50, desc: "Sweet, creamy, and chilled.", prep: "1 mins", hasMeat: false, isDrink: false }
                 ]
             }
@@ -339,31 +338,34 @@
             document.getElementById('progress-bar').style.width = `${((step - 1) / (totalSlides - 1)) * 100}%`;
         }
 
-        // Slide 1 Logic (New)
         function submitSlide1() {
-            const nameField = document.getElementById('owner-name');
-            const igField = document.getElementById('owner-ig');
-            systemData.ownerName = nameField.value.trim() || "Partner";
+            systemData.ownerName = document.getElementById('owner-name').value.trim();
             
-            // Clean up IG handle (remove @ if they typed it)
-            let ig = igField.value.trim();
+            // Clean up IG handle (remove spaces and leading @)
+            let ig = document.getElementById('owner-ig').value.trim();
+            ig = ig.replace(/\s+/g, '');
             if(ig.startsWith('@')) ig = ig.substring(1);
             systemData.ownerIG = ig;
             
-            nameField.blur(); 
-            igField.blur();
+            document.getElementById('owner-name').blur(); 
+            document.getElementById('owner-ig').blur();
+            
+            // If they skip name, we catch it in finalize, but proceed for now
             goToSlide(2);
         }
 
-        // Slide 2 Logic
         function submitSlide2() {
-            const inputField = document.getElementById('truck-name');
-            systemData.truckName = inputField.value.trim() || "My Food Truck";
-            inputField.blur(); 
-            goToSlide(3);
+            systemData.truckName = document.getElementById('truck-name').value.trim();
+            document.getElementById('truck-name').blur(); 
+            
+            // If they skip everything, jump straight to the end to generate the default demo
+            if(systemData.ownerName === "" && systemData.truckName === "") {
+                finalizeSystem();
+            } else {
+                goToSlide(3);
+            }
         }
 
-        // Slide 3 Logic (Updated to capture theme class for CSS targeting)
         function selectTheme(name, hex, themeClass) {
             systemData.themeName = name;
             systemData.themeColor = hex;
@@ -371,7 +373,6 @@
             goToSlide(4);
         }
 
-        // Slide 4 Logic - Presets (Updated to capture branding logic)
         function selectPreset(type) {
             systemData.cuisineSubheader = presets[type].subheader;
             systemData.cuisineEmoji = presets[type].emoji;
@@ -379,41 +380,53 @@
             finalizeSystem();
         }
 
-        // Slide 4 Logic - Custom
         function submitCustomMenu() {
             const names = document.querySelectorAll('.custom-name');
             const prices = document.querySelectorAll('.custom-price');
             
             for(let i=0; i<3; i++) {
                 if(names[i].value.trim() !== '') {
-                    // Build a generic complex item so walkthrough works even on custom
                     systemData.menu.push({
                         name: names[i].value.trim(),
                         price: parseFloat(prices[i].value) || 0.00,
                         desc: "Signature house item.",
                         prep: "4 mins",
-                        hasMeat: i === 0 ? true : false, // Make first item have a generic upcharge for the demo
+                        hasMeat: i === 0 ? true : false,
                         meats: i === 0 ? "Standard, Add Premium Protein" : null,
-                        camaronUpcharge: i === 0 ? 2.00 : null,
+                        premiumUpcharge: i === 0 ? 2.00 : null,
                         hasFlourTortillaOption: false,
                         isDrink: false
                     });
                 }
             }
-
-            // Fallback
-            if(systemData.menu.length === 0) {
-                systemData.cuisineSubheader = presets['mexican'].subheader;
-                systemData.cuisineEmoji = presets['mexican'].emoji;
-                systemData.menu = presets['mexican'].items;
-            }
-            
             finalizeSystem();
         }
 
-        // Final Handoff
         function finalizeSystem() {
+            // SAFETY NET: Fill in default values if the user skipped questions
+            if (!systemData.ownerName) systemData.ownerName = "Partner";
+            if (!systemData.truckName) systemData.truckName = "Demo Food Truck";
+            if (!systemData.themeClass) {
+                systemData.themeName = "Obsidian Black";
+                systemData.themeColor = "#1A1A1A";
+                systemData.themeClass = "theme-obsidian";
+            }
+            if (systemData.menu.length === 0) {
+                systemData.cuisineSubheader = presets['american'].subheader;
+                systemData.cuisineEmoji = presets['american'].emoji;
+                systemData.menu = presets['american'].items;
+            } else if (!systemData.cuisineSubheader) {
+                // If they typed a custom menu but didn't pick a preset
+                systemData.cuisineSubheader = "Fresh Local Eats";
+                systemData.cuisineEmoji = "🧑‍🍳";
+            }
+
             goToSlide(5);
+            
+            // Delete the walkthrough completion flag so the guide ALWAYS runs
+            localStorage.removeItem('wt_completed_customer');
+            
+            // Save payload to memory
             localStorage.setItem('demo_config', JSON.stringify(systemData));
             
             const textElement = document.getElementById('loading-text');
