@@ -27,13 +27,12 @@
             border-radius: 6px; font-weight: 600; cursor: pointer; text-align: center; font-size: 0.8rem; margin-top: 0.5rem;
         }
         
-        /* Elevates the specific target element AND its parent containers above the overlay */
         .wt-spotlight { position: relative; z-index: 9999 !important; border-radius: inherit; pointer-events: auto !important; }
         .wt-parent-override { z-index: 9999 !important; }
         .wt-spotlight-pulse { animation: wtPulse 2s infinite; }
         @keyframes wtPulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); } 70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
         
-        /* Toggle Switch CSS */
+        /* Toggle Switch */
         .toggle-checkbox:checked { right: 0; border-color: #10b981; }
         .toggle-checkbox:checked + .toggle-label { background-color: #10b981; }
     </style>
@@ -53,7 +52,7 @@
 
     <div class="max-w-md mx-auto w-full flex-grow relative">
         <!-- Password Lock Screen -->
-        <div id="loginView" class="p-6 flex flex-col items-center justify-center min-h-[90vh] text-center">
+        <div id="loginView" class="p-6 flex flex-col items-center justify-center min-h-[90vh] text-center relative z-10">
             <div class="w-24 h-24 rounded-full border-2 border-pink-500 p-1 mb-4 flex items-center justify-center shadow-lg shadow-pink-500/10 theme-border theme-shadow">
                 <span class="text-4xl" id="dynamic-emoji-login">🌮</span>
             </div>
@@ -71,7 +70,7 @@
 
         <!-- Owner Portal Dashboard -->
         <div id="ownerDashboardView" class="p-4 hidden">
-            <!-- Header -->
+            <!-- Header with Time Tracker -->
             <div class="flex items-center justify-between mb-4 border-b border-zinc-900 pb-3">
                 <div class="flex items-center gap-2.5">
                     <div class="w-8 h-8 rounded-full border border-pink-500 flex items-center justify-center text-sm theme-border" id="dynamic-emoji-dash">🌮</div>
@@ -80,8 +79,12 @@
                         <p class="text-[10px] text-zinc-400">Welcome, <span id="dynamic-owner-name">Partner</span></p>
                     </div>
                 </div>
-                <div class="flex items-center gap-3">
-                    <button onclick="lockOwnerPortal()" class="text-xs text-rose-400 hover:underline">Lock Screen</button>
+                <div class="flex items-center gap-2">
+                    <div id="time-clock-widget" onclick="openTimeClock()" class="flex items-center gap-1.5 bg-zinc-900 border border-zinc-800 rounded-full px-2.5 py-1 cursor-pointer hover:bg-zinc-800 transition">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span class="text-[10px] font-medium text-zinc-300">2 on shift</span>
+                    </div>
+                    <button onclick="lockOwnerPortal()" class="text-xs text-rose-400 hover:text-rose-300 ml-1">Lock</button>
                 </div>
             </div>
             
@@ -135,9 +138,47 @@
         </div>
     </div>
 
+    <!-- Time Clock Modal -->
+    <div id="timeClockModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-zinc-900 border border-zinc-800 w-full max-w-sm rounded-2xl p-5 space-y-4 relative">
+            <div class="flex justify-between items-center"><h3 class="font-bold text-lg">Employee Time Tracker</h3><button onclick="closeTimeClock()" class="text-zinc-400 hover:text-white text-sm">✕</button></div>
+            <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex justify-between items-center">
+                <div class="flex items-center gap-2"><div class="w-2 h-2 bg-emerald-500 rounded-full"></div><span class="text-sm font-medium">Alex M.</span></div>
+                <span class="text-xs text-zinc-500">In: 8:00 AM</span>
+            </div>
+            <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex justify-between items-center">
+                <div class="flex items-center gap-2"><div class="w-2 h-2 bg-emerald-500 rounded-full"></div><span class="text-sm font-medium">Sarah J.</span></div>
+                <span class="text-xs text-zinc-500">In: 9:15 AM</span>
+            </div>
+            <button onclick="closeTimeClock()" id="btn-close-timeclock" class="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-semibold py-3 rounded-xl transition mt-2">Close Tracker</button>
+        </div>
+    </div>
+
+    <!-- Live Inventory Edit Modal -->
+    <div id="editItemModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-zinc-900 border border-zinc-800 w-full max-w-sm rounded-2xl p-5 space-y-4 relative">
+            <div class="flex justify-between items-center"><h3 class="font-bold text-lg text-pink-400 theme-text">Live Editor</h3><button onclick="closeEditItem()" class="text-zinc-400 hover:text-white text-sm">✕</button></div>
+            <div>
+                <label class="block text-xs text-zinc-400 mb-1">Item Name</label>
+                <input type="text" id="editName" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-200">
+            </div>
+            <div class="flex gap-3">
+                <div class="flex-1">
+                    <label class="block text-xs text-zinc-400 mb-1">Price ($)</label>
+                    <input type="number" id="editPrice" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-200">
+                </div>
+                <div class="flex-1">
+                    <label class="block text-xs text-zinc-400 mb-1">Prep (Mins)</label>
+                    <input type="number" id="editPrep" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-200">
+                </div>
+            </div>
+            <button onclick="closeEditItem()" id="btn-close-edit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 rounded-xl transition shadow-lg mt-2">Save & Sync Live</button>
+        </div>
+    </div>
+
     <!-- High-Impact ROI Conclusion Modal -->
     <div id="roiModal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-zinc-900 border border-emerald-500/30 w-full max-w-sm rounded-2xl p-6 text-center space-y-5 shadow-2xl shadow-emerald-500/20 relative" id="roi-box">
+        <div class="bg-zinc-900 border border-emerald-500/30 w-full max-w-sm rounded-2xl p-6 text-center space-y-5 shadow-2xl shadow-emerald-500/20 relative">
             <div class="w-20 h-20 bg-emerald-500/10 border border-emerald-500/50 text-emerald-400 rounded-full flex items-center justify-center mx-auto text-4xl mb-2">💸</div>
             <h3 class="font-bold text-xl text-white">System Validated.</h3>
             
@@ -149,8 +190,7 @@
                     <li>Eliminated human error on custom modifiers.</li>
                 </ul>
             </div>
-            <p class="text-xs text-zinc-500 italic px-2">Imagine this running 24/7 during your busiest lunch rush.</p>
-            <button onclick="closeRoiModal()" id="btn-roi-close" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg mt-2">Finish Demo</button>
+            <button onclick="closeRoiModal()" id="btn-roi-close" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg mt-2">Explore Dashboard</button>
         </div>
     </div>
 
@@ -173,6 +213,7 @@
                             id: 900 + index, 
                             name: item.name,
                             price: parseFloat(item.price) || 0,
+                            prep: parseInt(item.prep) || 3,
                             soldOut: false
                         }));
                     }
@@ -199,7 +240,6 @@
             }
             if (c.ownerName) document.getElementById('dynamic-owner-name').innerText = c.ownerName;
 
-            // NUCLEAR CSS OVERRIDE
             if (c.themeClass) document.body.classList.add(c.themeClass);
             if (c.themeColor || c.themeClass) {
                 const brandColor = c.themeColor || "#ec4899";
@@ -209,19 +249,10 @@
                     .theme-border { border-color: ${brandColor} !important; }
                     .theme-shadow { box-shadow: 0 4px 15px ${brandColor}40 !important; }
                 `;
-
                 if (c.themeClass === 'theme-cleanslate') {
-                    extraCSS += `
-                        .theme-bg { background-color: #111 !important; color: #fff !important; }
-                        .theme-text { color: #111 !important; }
-                        .theme-border { border-color: #333 !important; }
-                    `;
+                    extraCSS += `.theme-bg { background-color: #111 !important; color: #fff !important; } .theme-text { color: #111 !important; } .theme-border { border-color: #333 !important; }`;
                 } else if (c.themeClass === 'theme-obsidian') {
-                    extraCSS += `
-                        .theme-bg { background-color: #fff !important; color: #000 !important; }
-                        .theme-text { color: #ddd !important; }
-                        .theme-border { border-color: #ddd !important; }
-                    `;
+                    extraCSS += `.theme-bg { background-color: #fff !important; color: #000 !important; } .theme-text { color: #ddd !important; } .theme-border { border-color: #ddd !important; }`;
                 }
                 const style = document.createElement('style');
                 style.innerHTML = extraCSS;
@@ -231,45 +262,61 @@
 
         // FAIL-SAFE WALKTHROUGH ENGINE
         const walkthroughSteps = [
-            { // 0: Security First
+            { // 0: Security
+                trigger: () => { wtShow("Security First", "Your backend is PIN-protected. Enter the demo PIN (1234) and click Unlock.", "login-box", false, 'top'); }
+            },
+            { // 1: Time Tracker
+                trigger: () => { wtShow("Team Management", "Track employee hours easily. Click the Time Clock widget at the top.", "time-clock-widget", false, 'bottom'); }
+            },
+            { // 2: Close Tracker
+                trigger: () => { wtShow("Time Clock", "Staff can quickly clock in or out here. Close this window.", "btn-close-timeclock", false, 'top'); }
+            },
+            { // 3: Mark Ready
                 trigger: () => { 
-                    // Spotlight the entire login box so the input field inside is clickable
-                    wtShow("Security First", "Your backend is PIN-protected to prevent unauthorized access. Enter the demo PIN (1234) and click Unlock.", "login-box", false); 
+                    const btnReady = document.querySelector('.btn-wt-ready');
+                    if(btnReady) { btnReady.id = 'wt-target-ready'; wtShow("Keep Customers Updated", "Click 'Mark Ready' to instantly text the customer that their food is hot.", "wt-target-ready", false, 'bottom'); }
+                    else wtNextStep();
                 }
             },
-            { // 1: Live Operations
+            { // 4: Fulfill
                 trigger: () => { 
-                    const firstFulfill = document.querySelector('.btn-wt-fulfill');
-                    if(firstFulfill) {
-                        firstFulfill.id = 'wt-target-fulfill';
-                        wtShow("Live Operations", "Your test order arrived instantly. When the food is bagged, click Fulfill to complete the transaction.", "wt-target-fulfill", false); 
-                    } else { wtNextStep(); }
+                    const btnFulfill = document.querySelector('.btn-wt-fulfill');
+                    if(btnFulfill) { btnFulfill.id = 'wt-target-fulfill'; wtShow("Capture Revenue", "The customer picked up the food. Click 'Fulfill' to clear the screen.", "wt-target-fulfill", false, 'bottom'); }
+                    else wtNextStep();
                 }
             },
-            { // 2: System Validated
-                trigger: () => { wtShow("System Validated", "Click Finish Demo to explore the rest of your tools.", "btn-roi-close", false); }
+            { // 5: ROI Math
+                trigger: () => { wtShow("System Validated", "Click 'Explore Dashboard' to see the rest of your tools.", "btn-roi-close", false, 'top'); }
             },
-            { // 3: Inventory Control
-                trigger: () => { wtShow("Inventory Control", "Let's manage your live menu. Click the Inventory tab.", "tabBtnMenu", false); }
+            { // 6: Inventory Navigation
+                trigger: () => { wtShow("Live Inventory", "Let's manage your live menu. Click the Inventory tab.", "tabBtnMenu", false, 'bottom'); }
             },
-            { // 4: Real-Time Updates
+            { // 7: Open Editor
                 trigger: () => { 
-                    const firstToggle = document.querySelector('.toggle-wrapper');
-                    if(firstToggle) {
-                        firstToggle.id = 'wt-target-toggle';
-                        wtShow("Real-Time Updates", "Run out of ingredients? Click this toggle to instantly mark an item 'Sold Out' on the customer site.", "wt-target-toggle", false); 
-                    } else { wtNextStep(); }
+                    const btnEdit = document.querySelector('.btn-wt-edit');
+                    if(btnEdit) { btnEdit.id = 'wt-target-edit'; wtShow("Edit on the Fly", "Click Edit to instantly change prices, prep times, or descriptions.", "wt-target-edit", false, 'bottom'); }
+                    else wtNextStep();
                 }
             },
-            { // 5: Financial Reporting
-                trigger: () => { wtShow("Financial Reporting", "Finally, let's look at the numbers. Click the Analytics tab.", "tabBtnAnalytics", false); }
+            { // 8: Close Editor
+                trigger: () => { wtShow("Live Editor", "Update anything here and it syncs instantly to the customer site. Save and close for now.", "btn-close-edit", false, 'top'); }
             },
-            { // 6: Real-Time Tracking
-                trigger: () => { wtShow("Real-Time Tracking", "Your revenue, volume, and averages update automatically. Your system tour is complete!", "analytics-dash", true); }
+            { // 9: Sold Out Toggle
+                trigger: () => { 
+                    const btnToggle = document.querySelector('.toggle-wrapper');
+                    if(btnToggle) { btnToggle.id = 'wt-target-toggle'; wtShow("Instant 86'ing", "Click this toggle to instantly mark an item 'Sold Out' if you run out of ingredients.", "wt-target-toggle", false, 'bottom'); }
+                    else wtNextStep();
+                }
+            },
+            { // 10: Analytics Navigation
+                trigger: () => { wtShow("Financial Reporting", "Finally, let's look at the numbers. Click the Analytics tab.", "tabBtnAnalytics", false, 'bottom'); }
+            },
+            { // 11: End
+                trigger: () => { wtShow("Real-Time Tracking", "Your revenue, volume, and AOV update automatically. Your system tour is complete!", "analytics-dash", true, 'top'); }
             }
         ];
 
-        function wtShow(title, text, targetId, showNextBtn = false) {
+        function wtShow(title, text, targetId, showNextBtn = false, positionHint = 'auto') {
             app.wtActive = true;
             document.getElementById('wtOverlay').style.display = 'block';
             
@@ -289,31 +336,27 @@
                 if (target) {
                     target.classList.add('wt-spotlight', 'wt-spotlight-pulse');
                     
-                    // Elevate parent containers
                     let current = target.parentElement;
                     while(current && current.tagName !== 'BODY') {
                         const style = window.getComputedStyle(current);
-                        if (style.zIndex !== 'auto' && style.zIndex !== '') {
-                            current.classList.add('wt-parent-override');
-                        }
+                        if (style.zIndex !== 'auto' && style.zIndex !== '') current.classList.add('wt-parent-override');
                         current = current.parentElement;
                     }
 
-                    // Dynamic positioning
-                    const rect = target.getBoundingClientRect();
                     tooltip.style.display = 'flex';
-                    if (rect.top < window.innerHeight / 2) {
-                        tooltip.style.top = 'auto';
-                        tooltip.style.bottom = '15%'; 
+                    if (positionHint === 'top') {
+                        tooltip.style.bottom = 'auto'; tooltip.style.top = '10%';
+                    } else if (positionHint === 'bottom') {
+                        tooltip.style.top = 'auto'; tooltip.style.bottom = '10%';
                     } else {
-                        tooltip.style.bottom = 'auto';
-                        tooltip.style.top = '15%'; 
+                        const rect = target.getBoundingClientRect();
+                        if (rect.top < window.innerHeight / 2) { tooltip.style.top = 'auto'; tooltip.style.bottom = '10%'; } 
+                        else { tooltip.style.bottom = 'auto'; tooltip.style.top = '10%'; }
                     }
                 }
             } else {
                 tooltip.style.display = 'flex';
-                tooltip.style.bottom = 'auto';
-                tooltip.style.top = '40%';
+                tooltip.style.bottom = 'auto'; tooltip.style.top = '40%';
             }
         }
 
@@ -341,7 +384,6 @@
             applyDemoConfig();
             document.getElementById('loginView').style.display = 'flex';
             
-            // Check if walkthrough should be running
             if (localStorage.getItem('wt_incoming_demo') === 'true') {
                 app.wtStep = 0;
                 document.getElementById('ownerPinInput').value = '1234';
@@ -349,24 +391,31 @@
             }
         };
 
-        // NATIVE UI & LOGIC (Triggering the Guide naturally)
+        // NATIVE UI & LOGIC (Native functions naturally advance the guide)
         function verifyOwnerPin() {
             const input = document.getElementById('ownerPinInput').value.trim();
             if (input === '1234') { 
                 document.getElementById('loginView').style.display = 'none';
                 document.getElementById('ownerDashboardView').style.display = 'block';
                 initOwnerPortal();
-                
-                if(app.wtActive && app.wtStep === 0) wtNextStep(); // Trigger Guide Next
-            } else {
-                alert("Incorrect Credentials! Use 1234");
-            }
+                if(app.wtActive && app.wtStep === 0) wtNextStep();
+            } else { alert("Incorrect Credentials! Use 1234"); }
         }
 
         function lockOwnerPortal() {
             document.getElementById('ownerDashboardView').style.display = 'none';
             document.getElementById('loginView').style.display = 'flex';
             document.getElementById('ownerPinInput').value = '';
+        }
+
+        function openTimeClock() {
+            document.getElementById('timeClockModal').style.display = 'flex';
+            if(app.wtActive && app.wtStep === 1) wtNextStep();
+        }
+
+        function closeTimeClock() {
+            document.getElementById('timeClockModal').style.display = 'none';
+            if(app.wtActive && app.wtStep === 2) wtNextStep();
         }
 
         function switchOwnerTab(tabName) {
@@ -376,22 +425,12 @@
                 const el = document.getElementById(`ownerTab${t}`);
                 const btn = document.getElementById(`tabBtn${t}`);
                 if (el) el.style.display = (t === tabName) ? 'block' : 'none';
-                if (btn) {
-                    btn.className = (t === tabName) ? 
-                        "bg-pink-600 text-white font-semibold py-2 rounded-xl text-[11px] transition shadow theme-bg" : 
-                        "bg-zinc-900 border border-zinc-800 text-zinc-300 font-semibold py-2 rounded-xl text-[11px] transition";
-                }
+                if (btn) btn.className = (t === tabName) ? "bg-pink-600 text-white font-semibold py-2 rounded-xl text-[11px] transition shadow theme-bg" : "bg-zinc-900 border border-zinc-800 text-zinc-300 font-semibold py-2 rounded-xl text-[11px] transition";
             });
 
             if (tabName === 'Orders') renderOwnerPortal();
-            if (tabName === 'Menu') {
-                renderOwnerMenuEditor();
-                if(app.wtActive && app.wtStep === 3) wtNextStep(); // Trigger Guide Next
-            }
-            if (tabName === 'Analytics') {
-                renderAnalytics();
-                if(app.wtActive && app.wtStep === 5) wtNextStep(); // Trigger Guide Next
-            }
+            if (tabName === 'Menu') { renderOwnerMenuEditor(); if(app.wtActive && app.wtStep === 6) wtNextStep(); }
+            if (tabName === 'Analytics') { renderAnalytics(); if(app.wtActive && app.wtStep === 10) wtNextStep(); }
         }
 
         function initOwnerPortal() {
@@ -409,21 +448,44 @@
                 container.innerHTML = `<div class="text-center text-zinc-500 py-6 text-xs bg-zinc-900 border border-zinc-800 rounded-xl">No incoming active orders.</div>`;
             } else {
                 container.innerHTML = orders.map(o => {
+                    const isReady = o.status.includes('Ready');
                     return `
                         <div class="bg-zinc-900 border border-zinc-800 p-4 rounded-xl flex flex-col gap-3 relative bg-zinc-900">
                             <div class="flex justify-between items-start">
                                 <div>
                                     <span class="text-xs font-mono font-bold theme-text">#${o.id} (${o.name})</span>
                                     <h4 class="font-bold text-sm mt-1">${o.items}</h4>
+                                    <div class="text-[10px] ${isReady ? 'text-blue-400' : 'text-amber-500'} mt-1 font-semibold">${o.status}</div>
                                 </div>
                                 <span class="font-bold text-emerald-400">$${o.total.toFixed(2)}</span>
                             </div>
                             <div class="flex gap-2 pt-2 border-t border-zinc-800/80">
-                                <button onclick="completeOrder('${o.id}')" class="flex-1 btn-wt-fulfill bg-emerald-600 hover:bg-emerald-500 py-2.5 rounded-lg text-sm font-bold text-white shadow-lg shadow-emerald-600/20">Fulfill ✓</button>
+                                <button onclick="cancelOrder('${o.id}')" class="bg-zinc-950 text-rose-400 border border-rose-500/30 px-3 py-2 rounded-lg text-xs font-medium">Cancel</button>
+                                <button onclick="markReady('${o.id}')" class="flex-1 btn-wt-ready ${isReady ? 'bg-zinc-800 text-zinc-500' : 'bg-blue-600 hover:bg-blue-500 text-white'} py-2 rounded-lg text-xs font-bold shadow-lg transition" ${isReady ? 'disabled' : ''}>${isReady ? 'SMS Sent ✓' : 'Mark Ready'}</button>
+                                <button onclick="completeOrder('${o.id}')" class="flex-1 btn-wt-fulfill bg-emerald-600 hover:bg-emerald-500 py-2 rounded-lg text-xs font-bold text-white shadow-lg shadow-emerald-600/20">Fulfill ✓</button>
                             </div>
                         </div>
                     `;
                 }).join('');
+            }
+        }
+
+        function cancelOrder(id) {
+            if(app.wtActive) return;
+            if(confirm("Cancel this order?")) {
+                app.orders = app.orders.filter(x => x.id !== id);
+                renderOwnerPortal();
+            }
+        }
+
+        function markReady(id) {
+            let orders = app.orders;
+            const idx = orders.findIndex(x => x.id === id);
+            if (idx > -1) {
+                orders[idx].status = "Ready (SMS Sent)";
+                app.orders = orders;
+                renderOwnerPortal();
+                if(app.wtActive && app.wtStep === 3) wtNextStep();
             }
         }
 
@@ -443,13 +505,13 @@
                 renderAnalytics();
                 
                 document.getElementById('roiModal').style.display = 'flex';
-                if(app.wtActive && app.wtStep === 1) wtNextStep(); // Trigger Guide Next
+                if(app.wtActive && app.wtStep === 4) wtNextStep();
             }
         }
 
         function closeRoiModal() {
             document.getElementById('roiModal').style.display = 'none';
-            if(app.wtActive && app.wtStep === 2) wtNextStep(); // Trigger Guide Next
+            if(app.wtActive && app.wtStep === 5) wtNextStep();
         }
 
         function renderOwnerMenuEditor() {
@@ -464,11 +526,12 @@
                     <div class="bg-zinc-900 border border-zinc-800 p-4 rounded-xl flex justify-between items-center text-xs">
                         <div>
                             <div class="font-bold text-zinc-100">${item.name}</div>
-                            <div class="theme-text text-[11px] mt-0.5">$${item.price.toFixed(2)}</div>
+                            <div class="theme-text text-[11px] mt-0.5">$${item.price.toFixed(2)} • Prep: ${item.prep}m</div>
                         </div>
                         <div class="flex items-center gap-3">
-                            <span class="text-[10px] text-zinc-500 font-medium uppercase tracking-wider">86 / Sold Out</span>
-                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in toggle-wrapper" onclick="toggleSoldOut(this)">
+                            <button onclick="openEditItem('${item.name}', ${item.price}, ${item.prep})" class="btn-wt-edit bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1.5 rounded-lg text-[10px] font-semibold transition">Edit</button>
+                            <span class="text-[10px] text-zinc-500 font-medium uppercase tracking-wider hidden sm:inline">86 / Sold Out</span>
+                            <div class="relative inline-block w-10 mr-1 align-middle select-none transition duration-200 ease-in toggle-wrapper" onclick="toggleSoldOut(this)">
                                 <input type="checkbox" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-zinc-700 z-10 transition-transform duration-200 ease-in-out"/>
                                 <label class="toggle-label block overflow-hidden h-5 rounded-full bg-zinc-700 cursor-pointer"></label>
                             </div>
@@ -478,10 +541,23 @@
             }).join('');
         }
 
+        function openEditItem(name, price, prep) {
+            document.getElementById('editName').value = name;
+            document.getElementById('editPrice').value = price.toFixed(2);
+            document.getElementById('editPrep').value = prep;
+            document.getElementById('editItemModal').style.display = 'flex';
+            if(app.wtActive && app.wtStep === 7) wtNextStep();
+        }
+
+        function closeEditItem() {
+            document.getElementById('editItemModal').style.display = 'none';
+            if(app.wtActive && app.wtStep === 8) wtNextStep();
+        }
+
         function toggleSoldOut(element) {
             const checkbox = element.querySelector('.toggle-checkbox');
             checkbox.checked = !checkbox.checked;
-            if(app.wtActive && app.wtStep === 4) wtNextStep(); // Trigger Guide Next
+            if(app.wtActive && app.wtStep === 9) wtNextStep();
         }
 
         function renderAnalytics() {
