@@ -49,17 +49,24 @@
     <div class="max-w-md mx-auto w-full flex-grow relative pb-8">
         <!-- Landing View -->
         <div id="landingView" class="p-6 flex flex-col items-center justify-center min-h-[85vh] text-center">
-            <div class="w-24 h-24 rounded-full border-2 border-pink-500 p-1 mb-4 flex items-center justify-center shadow-lg shadow-pink-500/10 theme-border theme-shadow">
-                <span class="text-4xl" id="dynamic-emoji">🌮</span>
+            
+            <!-- Grouped Brand Area for Walkthrough -->
+            <div id="brand-group" class="w-full flex flex-col items-center relative transition-all rounded-xl pb-1">
+                <div class="w-24 h-24 rounded-full border-2 border-pink-500 p-1 mb-4 flex items-center justify-center shadow-lg shadow-pink-500/10 theme-border theme-shadow">
+                    <span class="text-4xl" id="dynamic-emoji">🌮</span>
+                </div>
+                <h1 id="dynamic-truck-name" class="text-3xl font-serif font-bold italic tracking-wide mb-1">Storefront</h1>
+                <p id="dynamic-subheader" class="text-zinc-400 text-sm mb-3">Fresh Local Eats</p>
+                <div class="mb-5 text-center" id="ig-container" style="display:none;">
+                    <a href="#" target="_blank" id="dynamic-ig-link" class="text-xs text-pink-500 hover:text-pink-400 tracking-wider font-medium flex items-center justify-center gap-1.5 theme-text"><span>📷</span> @<span id="dynamic-ig-text">username</span></a>
+                </div>
             </div>
-            <h1 id="dynamic-truck-name" class="text-3xl font-serif font-bold italic tracking-wide mb-1">Storefront</h1>
-            <p id="dynamic-subheader" class="text-zinc-400 text-sm mb-5">Fresh Local Eats</p>
             
             <!-- Grouped Status Area for Walkthrough -->
             <div id="status-group" class="w-full relative rounded-xl transition-all">
                 <div class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 mb-3 text-left shadow-md">
                     <div class="flex justify-between items-center mb-1">
-                        <label class="text-[11px] text-zinc-400 font-medium">📍 Active Truck Location (Click to Map):</label>
+                        <label class="text-[11px] text-zinc-400 font-medium">📍 Active Location (Click to Map):</label>
                     </div>
                     <div id="activeLocationDisplay" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2.5 text-xs text-zinc-300 font-medium">Downtown Main Street</div>
                 </div>
@@ -75,10 +82,6 @@
 
             <div class="w-full space-y-3 relative mt-3">
                 <button onclick="switchView('menu')" id="btn-start-order" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-semibold py-3.5 rounded-xl transition shadow-lg shadow-pink-600/25 theme-bg theme-shadow">Start Order</button>
-            </div>
-
-            <div class="mt-10 text-center" id="ig-container" style="display:none;">
-                <a href="#" target="_blank" id="dynamic-ig-link" class="text-xs text-pink-500 hover:text-pink-400 tracking-wider font-medium flex items-center justify-center gap-1.5 theme-text"><span>📷</span> @<span id="dynamic-ig-text">username</span></a>
             </div>
         </div>
 
@@ -237,7 +240,7 @@
                 statusText.previousElementSibling.classList.replace('bg-emerald-500', 'bg-rose-500'); 
             }
 
-            // Rush Mode Setup (Forces +15 Mins if demo is new so features can be seen)
+            // Rush Mode Setup
             let rushModeStr = localStorage.getItem('foodtruck_rush_mode');
             let rushMode = 0;
             if (!rushModeStr) {
@@ -274,9 +277,10 @@
             return true;
         }
 
-        // FULL 10-STEP CUSTOMER WALKTHROUGH ENGINE
+        // FULL 11-STEP CUSTOMER WALKTHROUGH ENGINE
         const walkthroughSteps = [
             { trigger: () => { const name = app.config?.ownerName || "Partner"; wtShow(`Welcome, ${name}!`, "Your digital storefront is live. Let's place a test order to see the automation.", null, true, 'auto', false, "Next"); } },
+            { trigger: () => { wtShow("Brand Identity", "Your logo, vendor name, subheader, and social links are front-and-center to drive customer engagement.", "brand-group", true, 'extreme-bottom', false, "Next"); } },
             { trigger: () => { wtShow("Real-Time Sync", "Your active location, open status, and rush-hour wait times update instantly from your kitchen display.", "status-group", true, 'bottom', false, "Next"); } },
             { trigger: () => { wtShow("The Front Door", "Click the Start Order button to enter your menu.", "btn-start-order", false, 'extreme-bottom'); } },
             { trigger: () => { 
@@ -375,7 +379,7 @@
                 const el = document.getElementById(v); if (el) el.style.display = 'none';
             });
             if (view === 'landing') document.getElementById('landingView').style.display = 'flex';
-            if (view === 'menu') { document.getElementById('menuView').style.display = 'block'; renderMenu(); if(app.wtActive && app.wtStep === 2) wtNextStep(); }
+            if (view === 'menu') { document.getElementById('menuView').style.display = 'block'; renderMenu(); if(app.wtActive && app.wtStep === 3) wtNextStep(); }
             if (view === 'tracker') { document.getElementById('trackerView').style.display = 'block'; renderTracker(); }
         }
 
@@ -462,7 +466,7 @@
             }
 
             document.getElementById('itemModal').style.display = 'flex';
-            if(app.wtActive && app.wtStep === 4) wtNextStep(); 
+            if(app.wtActive && app.wtStep === 5) wtNextStep(); 
         }
 
         function closeItemModal() {
@@ -493,7 +497,7 @@
             app.cart.push({ name: itemName, price: effectivePrice, quantity: currentModalQtyVal, prep: prepMins });
             document.getElementById('itemModal').style.display = 'none';
             updateCartBadges();
-            if(app.wtActive && app.wtStep === 5) wtNextStep(); 
+            if(app.wtActive && app.wtStep === 6) wtNextStep(); 
         }
 
         function updateCartBadges() {
@@ -523,7 +527,7 @@
             `).join('');
             
             document.getElementById('cartModal').style.display = 'flex';
-            if(app.wtActive && app.wtStep === 6) wtNextStep(); 
+            if(app.wtActive && app.wtStep === 7) wtNextStep(); 
         }
 
         function closeCartModal() { 
@@ -532,7 +536,10 @@
         }
 
         function submitOrder() {
-            const ticketId = Date.now().toString().slice(-3);
+            let nextId = parseInt(localStorage.getItem('foodtruck_next_order_id')) || 101;
+            const ticketId = nextId.toString();
+            localStorage.setItem('foodtruck_next_order_id', nextId + 1);
+
             let nameInput = document.getElementById('customerName').value.trim() || "Guest";
             let notesInput = document.getElementById('customerNotes').value.trim();
             let notesString = notesInput ? `\nNote: ${notesInput}` : '';
@@ -557,13 +564,13 @@
             
             document.getElementById('btn-route-owner').classList.remove('hidden');
             localStorage.setItem('wt_incoming_demo', 'true');
-            if(app.wtActive && app.wtStep === 7) wtNextStep(); 
+            if(app.wtActive && app.wtStep === 8) wtNextStep(); 
         }
 
         function closeSuccessModal() {
             document.getElementById('successModal').style.display = 'none';
             switchView('tracker');
-            if(app.wtActive && app.wtStep === 8) wtNextStep(); 
+            if(app.wtActive && app.wtStep === 9) wtNextStep(); 
         }
 
         function renderTracker() {
