@@ -297,7 +297,7 @@
                 document.getElementById('customerName').value = app.config?.ownerName || "Test Customer";
                 wtShow("Wait Time Calculation", "Look at the top. The system calculated an exact wait estimate based on prep times. Click Place Order.", "btn-place-order", false, 'extreme-bottom');
             }},
-            { trigger: () => { wtShow("Ticket Generation", "Success! The system collected the money and generated a ticket. View the customer tracker.", "btn-view-tracker", false, 'top'); } },
+            { trigger: () => { wtShow("Ticket Generation", "Success! The system captured your customer's preorder instantly. (Note: This free version handles preorders perfectly; integrated payment processing will be in the paid version). View the customer tracker.", "btn-view-tracker", false, 'top'); } },
             { trigger: () => {
                 document.getElementById('btn-route-owner').classList.remove('hidden');
                 wtShow("Backend Handoff", "The customer waits here. Now, let's jump to your Kitchen Display to fulfill this order.", "btn-route-owner", false, 'center', true);
@@ -418,7 +418,7 @@
                                     <p class="text-xs text-zinc-400 mt-0.5">${item.desc}</p>
                                     <div class="flex items-center gap-3 mt-2">
                                         ${priceHTML}
-                                        <span class="text-[10px] text-zinc-500">(~${item.prep})</span>
+                                        <span class="text-[10px] text-zinc-500">(~${item.prep} mins)</span>
                                     </div>
                                 </div>
                                 ${btnHtml}
