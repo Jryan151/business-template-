@@ -5,22 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>System Provisioning</title>
     <style>
-        /* Sleek Neutral / Dark Mode Aesthetics */
+        /* Import the softer, approachable font */
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap');
+
+        /* Warmer, Softer Dark Mode Aesthetics */
         :root {
-            --bg-color: #0f1115; /* Deep Charcoal */
-            --surface-color: #1a1d24; /* Elevated Slate */
-            --text-primary: #f8f9fa;
-            --text-secondary: #8b92a5;
-            --accent-color: #ffffff;
-            --border-color: #2d313a;
+            --bg-color: #181719; 
+            --surface-color: #242226; 
+            --text-primary: #F2F0ED; 
+            --text-secondary: #9B99A0; 
+            --accent-color: #FFFFFF;
+            --border-color: rgba(255, 255, 255, 0.08); 
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; }
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; 
+        }
         
         body {
             background-color: var(--bg-color);
             color: var(--text-primary);
-            overflow: hidden; /* Prevents scrolling, forces focus */
+            overflow: hidden; /* Prevents iOS rubber-banding */
             height: 100vh;
             display: flex;
             flex-direction: column;
@@ -76,32 +84,68 @@
             transform: translateX(-50px);
         }
 
-        /* Typography & Inputs */
-        h1 { font-size: 1.75rem; font-weight: 500; margin-bottom: 0.5rem; text-align: center; }
-        p.subtitle { color: var(--text-secondary); margin-bottom: 2rem; text-align: center; }
+        /* Typography */
+        h1 { 
+            font-size: 1.85rem; 
+            font-weight: 400; 
+            letter-spacing: -0.5px;
+            margin-bottom: 0.5rem; 
+            text-align: center; 
+        }
+        
+        p.subtitle { 
+            color: var(--text-secondary); 
+            font-size: 1.05rem;
+            font-weight: 300;
+            margin-bottom: 2.5rem; 
+            text-align: center; 
+        }
 
+        /* Floating Pill Inputs */
         input[type="text"], input[type="number"] {
-            background: transparent;
-            border: none;
-            border-bottom: 2px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.03); 
+            border: 1px solid var(--border-color);
+            border-radius: 20px; 
             color: var(--text-primary);
-            font-size: 1.5rem;
-            padding: 0.5rem;
+            font-size: 1.25rem;
+            padding: 1.2rem 1.5rem; 
             text-align: center;
             width: 100%;
             max-width: 400px;
             outline: none;
-            transition: border-color 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); 
         }
         
         input[type="text"]:focus, input[type="number"]:focus {
-            border-bottom-color: var(--accent-color);
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.05); 
+            transform: translateY(-2px); 
         }
         
-        /* Mobile zoom prevention */
-        input { font-size: 16px !important; }
+        input { font-size: 16px !important; /* iOS auto-zoom prevention */ }
 
-        /* Color Swatches (Neutral/Modern) */
+        /* Buttons */
+        .btn-primary {
+            background: var(--text-primary);
+            color: var(--bg-color);
+            border: none;
+            padding: 1.2rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 500;
+            border-radius: 20px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 400px;
+            margin-top: 1.5rem;
+            transition: transform 0.2s;
+        }
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+        /* Color Swatches */
         .color-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -111,14 +155,17 @@
         }
         .swatch {
             padding: 1.5rem;
-            border-radius: 8px;
+            border-radius: 16px;
             border: 1px solid var(--border-color);
             cursor: pointer;
             text-align: center;
-            font-weight: 500;
-            transition: transform 0.2s;
+            font-weight: 400;
+            transition: all 0.2s ease;
         }
-        .swatch:hover { transform: translateY(-2px); }
+        .swatch:hover { 
+            transform: translateY(-2px); 
+            border-color: rgba(255,255,255,0.2);
+        }
 
         /* Menu Builders */
         .menu-presets {
@@ -127,45 +174,33 @@
             gap: 0.75rem;
             width: 100%;
             max-width: 400px;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
         .preset-btn {
-            background: var(--surface-color);
+            background: rgba(255, 255, 255, 0.03);
             color: var(--text-primary);
             border: 1px solid var(--border-color);
-            padding: 1rem;
-            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            border-radius: 16px;
             font-size: 1rem;
+            font-weight: 300;
             cursor: pointer;
             text-align: left;
             display: flex;
             justify-content: space-between;
+            transition: background 0.2s;
         }
-        .preset-btn:hover { border-color: var(--text-secondary); }
+        .preset-btn:hover { background: rgba(255, 255, 255, 0.06); }
 
         .custom-menu-row {
             display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
             width: 100%;
             max-width: 400px;
         }
-        .custom-menu-row input[type="text"] { flex: 2; font-size: 1.2rem; text-align: left; }
-        .custom-menu-row input[type="number"] { flex: 1; font-size: 1.2rem; text-align: right; }
-
-        .btn-primary {
-            background: var(--text-primary);
-            color: var(--bg-color);
-            border: none;
-            padding: 1rem 2rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: 8px;
-            cursor: pointer;
-            width: 100%;
-            max-width: 400px;
-            margin-top: 1rem;
-        }
+        .custom-menu-row input[type="text"] { flex: 2; font-size: 1.1rem; text-align: left; border-radius: 12px; padding: 1rem; }
+        .custom-menu-row input[type="number"] { flex: 1; font-size: 1.1rem; text-align: right; border-radius: 12px; padding: 1rem; }
 
         /* Loader */
         .loader {
@@ -185,28 +220,29 @@
     <div id="progress-container"><div id="progress-bar"></div></div>
 
     <div id="slides-container">
-        <!-- Slide 1: Identity -->
+        <!-- Slide 1: Identity (With Next Button Fix) -->
         <div class="slide active" id="slide-1">
             <h1>What is your food truck's name?</h1>
-            <p class="subtitle">Press Enter to continue</p>
+            <p class="subtitle">Let's set up your digital kitchen.</p>
             <input type="text" id="truck-name" placeholder="e.g., Bite Street Tacos" autocomplete="off" autofocus>
+            <button class="btn-primary" onclick="submitSlide1()">Next</button>
         </div>
 
         <!-- Slide 2: Aesthetics -->
         <div class="slide" id="slide-2">
-            <h1>Select your brand theme.</h1>
+            <h1>Which aesthetic matches your vibe?</h1>
             <p class="subtitle">This dictates your portal's UI.</p>
             <div class="color-grid">
-                <div class="swatch" style="background:#20232a; color:#fff;" onclick="selectTheme('Obsidian Black', '#20232a')">Obsidian Black</div>
-                <div class="swatch" style="background:#4a5568; color:#fff;" onclick="selectTheme('Slate Grey', '#4a5568')">Slate Grey</div>
-                <div class="swatch" style="background:#78866b; color:#fff;" onclick="selectTheme('Sage Matte', '#78866b')">Sage Matte</div>
-                <div class="swatch" style="background:#c07c65; color:#fff;" onclick="selectTheme('Terracotta', '#c07c65')">Terracotta</div>
+                <div class="swatch" style="background:#1A1A1A; color:#fff;" onclick="selectTheme('Obsidian Black', '#1A1A1A')">Obsidian Black</div>
+                <div class="swatch" style="background:#40464F; color:#fff;" onclick="selectTheme('Slate Grey', '#40464F')">Slate Grey</div>
+                <div class="swatch" style="background:#6B7062; color:#fff;" onclick="selectTheme('Matte Sage', '#6B7062')">Matte Sage</div>
+                <div class="swatch" style="background:#EAE8E3; color:#181719; border-color:#d0cdc5;" onclick="selectTheme('Clean Slate', '#EAE8E3')">Clean Slate</div>
             </div>
         </div>
 
         <!-- Slide 3: The Product -->
         <div class="slide" id="slide-3">
-            <h1>Add your top 3 sellers.</h1>
+            <h1>List your top 3 sellers.</h1>
             <p class="subtitle">Choose a preset or type your own.</p>
             
             <div class="menu-presets">
@@ -221,19 +257,19 @@
                 </button>
             </div>
 
-            <div style="width:100%; max-width:400px; text-align:center; margin-bottom:1rem; color:var(--text-secondary); text-transform:uppercase; font-size:0.8rem; letter-spacing:1px;">Or Custom Entry</div>
+            <div style="width:100%; max-width:400px; text-align:center; margin-bottom:1rem; color:var(--text-secondary); text-transform:uppercase; font-size:0.75rem; letter-spacing:1px; font-weight:500;">Or Custom Entry</div>
 
             <div class="custom-menu-row">
                 <input type="text" class="custom-name" placeholder="Item 1">
-                <input type="number" class="custom-price" placeholder="$0.00" step="0.50">
+                <input type="number" class="custom-price" placeholder="$0.00" step="0.50" inputmode="decimal">
             </div>
             <div class="custom-menu-row">
                 <input type="text" class="custom-name" placeholder="Item 2">
-                <input type="number" class="custom-price" placeholder="$0.00" step="0.50">
+                <input type="number" class="custom-price" placeholder="$0.00" step="0.50" inputmode="decimal">
             </div>
             <div class="custom-menu-row">
                 <input type="text" class="custom-name" placeholder="Item 3">
-                <input type="number" class="custom-price" placeholder="$0.00" step="0.50">
+                <input type="number" class="custom-price" placeholder="$0.00" step="0.50" inputmode="decimal">
             </div>
             
             <button class="btn-primary" onclick="submitCustomMenu()">Build My System</button>
@@ -247,7 +283,6 @@
     </div>
 
     <script>
-        // Central Data Object
         const systemData = {
             truckName: "",
             themeName: "",
@@ -283,12 +318,18 @@
             document.getElementById('progress-bar').style.width = `${(step / 4) * 100}%`;
         }
 
-        // Slide 1 Logic
+        // Slide 1 Logic - Handles Button Click
+        function submitSlide1() {
+            const inputField = document.getElementById('truck-name');
+            systemData.truckName = inputField.value.trim() || "My Food Truck";
+            inputField.blur(); // Hides keyboard on iOS
+            goToSlide(2);
+        }
+
+        // Fallback for Enter key
         document.getElementById('truck-name').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                systemData.truckName = this.value.trim() || "My Food Truck";
-                this.blur(); // dismiss mobile keyboard
-                goToSlide(2);
+                submitSlide1();
             }
         });
 
@@ -319,28 +360,22 @@
                 }
             }
 
-            // Fallback if they hit submit while empty
             if(systemData.menu.length === 0) systemData.menu = presets['mexican'];
-            
             finalizeSystem();
         }
 
         // Final Handoff
         function finalizeSystem() {
             goToSlide(4);
-            
-            // Write the payload to browser memory
             localStorage.setItem('demo_config', JSON.stringify(systemData));
             
-            // Processing Sequence Illusion
             const textElement = document.getElementById('loading-text');
             setTimeout(() => { textElement.innerText = "Provisioning Customer Portal..."; }, 1000);
             setTimeout(() => { textElement.innerText = "Syncing Local Storage Engine..."; }, 2000);
             setTimeout(() => { 
                 textElement.innerText = "System Ready. Redirecting."; 
-                // NEXT STEP: Uncomment this when you build the demo portal
+                // When ready to connect to your offline demo, uncomment this:
                 // window.location.href = "demo.html";
-                console.log("Payload saved to localStorage:", JSON.parse(localStorage.getItem('demo_config')));
             }, 3000);
         }
     </script>
