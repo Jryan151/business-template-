@@ -220,7 +220,7 @@
     <div id="progress-container"><div id="progress-bar"></div></div>
 
     <div id="slides-container">
-        <!-- Slide 1: Identity (With Next Button Fix) -->
+        <!-- Slide 1: Identity -->
         <div class="slide active" id="slide-1">
             <h1>What is your food truck's name?</h1>
             <p class="subtitle">Let's set up your digital kitchen.</p>
@@ -318,35 +318,30 @@
             document.getElementById('progress-bar').style.width = `${(step / 4) * 100}%`;
         }
 
-        // Slide 1 Logic - Handles Button Click
         function submitSlide1() {
             const inputField = document.getElementById('truck-name');
             systemData.truckName = inputField.value.trim() || "My Food Truck";
-            inputField.blur(); // Hides keyboard on iOS
+            inputField.blur(); 
             goToSlide(2);
         }
 
-        // Fallback for Enter key
         document.getElementById('truck-name').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 submitSlide1();
             }
         });
 
-        // Slide 2 Logic
         function selectTheme(name, hex) {
             systemData.themeName = name;
             systemData.themeColor = hex;
             goToSlide(3);
         }
 
-        // Slide 3 Logic - Presets
         function selectPreset(type) {
             systemData.menu = presets[type];
             finalizeSystem();
         }
 
-        // Slide 3 Logic - Custom
         function submitCustomMenu() {
             const names = document.querySelectorAll('.custom-name');
             const prices = document.querySelectorAll('.custom-price');
@@ -364,7 +359,6 @@
             finalizeSystem();
         }
 
-        // Final Handoff
         function finalizeSystem() {
             goToSlide(4);
             localStorage.setItem('demo_config', JSON.stringify(systemData));
@@ -374,8 +368,8 @@
             setTimeout(() => { textElement.innerText = "Syncing Local Storage Engine..."; }, 2000);
             setTimeout(() => { 
                 textElement.innerText = "System Ready. Redirecting."; 
-                // Redirects to your Customer Portal
-                window.location.href = "index.html"; 
+                // Points directly to your customer.html file
+                window.location.href = "customer.html"; 
             }, 3000);
         }
     </script>
