@@ -5,10 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>System Provisioning</title>
     <style>
-        /* Import the softer, approachable font */
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap');
 
-        /* Warmer, Softer Dark Mode Aesthetics */
         :root {
             --bg-color: #181719; 
             --surface-color: #242226; 
@@ -28,13 +26,12 @@
         body {
             background-color: var(--bg-color);
             color: var(--text-primary);
-            overflow: hidden; /* Prevents iOS rubber-banding */
+            overflow: hidden; 
             height: 100vh;
             display: flex;
             flex-direction: column;
         }
 
-        /* Progress Bar */
         #progress-container {
             width: 100%;
             height: 4px;
@@ -46,12 +43,11 @@
         }
         #progress-bar {
             height: 100%;
-            width: 25%;
+            width: 20%;
             background: var(--accent-color);
             transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Slide Container */
         #slides-container {
             flex: 1;
             position: relative;
@@ -84,7 +80,6 @@
             transform: translateX(-50px);
         }
 
-        /* Typography */
         h1 { 
             font-size: 1.85rem; 
             font-weight: 400; 
@@ -99,9 +94,9 @@
             font-weight: 300;
             margin-bottom: 2.5rem; 
             text-align: center; 
+            max-width: 400px;
         }
 
-        /* Floating Pill Inputs */
         input[type="text"], input[type="number"] {
             background: rgba(255, 255, 255, 0.03); 
             border: 1px solid var(--border-color);
@@ -115,6 +110,7 @@
             outline: none;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); 
+            margin-bottom: 1rem;
         }
         
         input[type="text"]:focus, input[type="number"]:focus {
@@ -124,9 +120,8 @@
             transform: translateY(-2px); 
         }
         
-        input { font-size: 16px !important; /* iOS auto-zoom prevention */ }
+        input { font-size: 16px !important; }
 
-        /* Buttons */
         .btn-primary {
             background: var(--text-primary);
             color: var(--bg-color);
@@ -138,14 +133,13 @@
             cursor: pointer;
             width: 100%;
             max-width: 400px;
-            margin-top: 1.5rem;
+            margin-top: 0.5rem;
             transition: transform 0.2s;
         }
         .btn-primary:active {
             transform: scale(0.98);
         }
 
-        /* Color Swatches */
         .color-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -167,7 +161,6 @@
             border-color: rgba(255,255,255,0.2);
         }
 
-        /* Menu Builders */
         .menu-presets {
             display: flex;
             flex-direction: column;
@@ -199,10 +192,9 @@
             width: 100%;
             max-width: 400px;
         }
-        .custom-menu-row input[type="text"] { flex: 2; font-size: 1.1rem; text-align: left; border-radius: 12px; padding: 1rem; }
-        .custom-menu-row input[type="number"] { flex: 1; font-size: 1.1rem; text-align: right; border-radius: 12px; padding: 1rem; }
+        .custom-menu-row input[type="text"] { flex: 2; font-size: 1.1rem; text-align: left; border-radius: 12px; padding: 1rem; margin-bottom: 0; }
+        .custom-menu-row input[type="number"] { flex: 1; font-size: 1.1rem; text-align: right; border-radius: 12px; padding: 1rem; margin-bottom: 0; }
 
-        /* Loader */
         .loader {
             width: 40px; height: 40px;
             border: 3px solid var(--border-color);
@@ -220,37 +212,47 @@
     <div id="progress-container"><div id="progress-bar"></div></div>
 
     <div id="slides-container">
-        <!-- Slide 1: Identity -->
+        
+        <!-- Slide 1: Owner Details (NEW) -->
         <div class="slide active" id="slide-1">
-            <h1>What is your food truck's name?</h1>
-            <p class="subtitle">Let's set up your digital kitchen.</p>
-            <input type="text" id="truck-name" placeholder="e.g., Bite Street Tacos" autocomplete="off" autofocus>
+            <h1>Let's get acquainted.</h1>
+            <p class="subtitle">Who is running the show?</p>
+            <input type="text" id="owner-name" placeholder="Your Name (e.g., Alex)" autocomplete="off" autofocus>
+            <input type="text" id="owner-ig" placeholder="Instagram @handle (Optional)" autocomplete="off">
             <button class="btn-primary" onclick="submitSlide1()">Next</button>
         </div>
 
-        <!-- Slide 2: Aesthetics -->
+        <!-- Slide 2: Identity -->
         <div class="slide" id="slide-2">
+            <h1>What is your food truck's name?</h1>
+            <p class="subtitle">Let's set up your digital kitchen.</p>
+            <input type="text" id="truck-name" placeholder="e.g., Bite Street Tacos" autocomplete="off">
+            <button class="btn-primary" onclick="submitSlide2()">Next</button>
+        </div>
+
+        <!-- Slide 3: Aesthetics (Updated with Disclaimer) -->
+        <div class="slide" id="slide-3">
             <h1>Which aesthetic matches your vibe?</h1>
-            <p class="subtitle">This dictates your portal's UI.</p>
+            <p class="subtitle" style="font-size: 0.9rem;">(Note: These are quick test themes. We implement your exact custom hex brand colors in the final system.)</p>
             <div class="color-grid">
-                <div class="swatch" style="background:#1A1A1A; color:#fff;" onclick="selectTheme('Obsidian Black', '#1A1A1A')">Obsidian Black</div>
-                <div class="swatch" style="background:#40464F; color:#fff;" onclick="selectTheme('Slate Grey', '#40464F')">Slate Grey</div>
-                <div class="swatch" style="background:#6B7062; color:#fff;" onclick="selectTheme('Matte Sage', '#6B7062')">Matte Sage</div>
-                <div class="swatch" style="background:#EAE8E3; color:#181719; border-color:#d0cdc5;" onclick="selectTheme('Clean Slate', '#EAE8E3')">Clean Slate</div>
+                <div class="swatch" style="background:#1A1A1A; color:#fff;" onclick="selectTheme('Obsidian Black', '#1A1A1A', 'theme-obsidian')">Obsidian Black</div>
+                <div class="swatch" style="background:#40464F; color:#fff;" onclick="selectTheme('Slate Grey', '#40464F', 'theme-slate')">Slate Grey</div>
+                <div class="swatch" style="background:#6B7062; color:#fff;" onclick="selectTheme('Matte Sage', '#6B7062', 'theme-sage')">Matte Sage</div>
+                <div class="swatch" style="background:#EAE8E3; color:#181719; border-color:#d0cdc5;" onclick="selectTheme('Clean Slate', '#EAE8E3', 'theme-cleanslate')">Clean Slate</div>
             </div>
         </div>
 
-        <!-- Slide 3: The Product -->
-        <div class="slide" id="slide-3">
+        <!-- Slide 4: The Product -->
+        <div class="slide" id="slide-4">
             <h1>List your top 3 sellers.</h1>
-            <p class="subtitle">Choose a preset or type your own.</p>
+            <p class="subtitle">Choose a preset or type your own to see how our logic handles modifiers and wait times.</p>
             
             <div class="menu-presets">
                 <button class="preset-btn" onclick="selectPreset('mexican')">
                     <span>🌮 Mexican Street Food</span><span style="color:var(--text-secondary)">Use Preset</span>
                 </button>
                 <button class="preset-btn" onclick="selectPreset('american')">
-                    <span>🍔 Smashburger Classic</span><span style="color:var(--text-secondary)">Use Preset</span>
+                    <span>🍔 Burgers & Classics</span><span style="color:var(--text-secondary)">Use Preset</span>
                 </button>
                 <button class="preset-btn" onclick="selectPreset('asian')">
                     <span>🥡 Asian Fusion</span><span style="color:var(--text-secondary)">Use Preset</span>
@@ -275,8 +277,8 @@
             <button class="btn-primary" onclick="submitCustomMenu()">Build My System</button>
         </div>
 
-        <!-- Slide 4: Processing Handoff -->
-        <div class="slide" id="slide-4">
+        <!-- Slide 5: Processing Handoff -->
+        <div class="slide" id="slide-5">
             <div class="loader"></div>
             <h1 id="loading-text">Compiling Kitchen Display...</h1>
         </div>
@@ -284,92 +286,142 @@
 
     <script>
         const systemData = {
+            ownerName: "",
+            ownerIG: "",
             truckName: "",
             themeName: "",
             themeColor: "",
+            themeClass: "",
+            cuisineSubheader: "Fresh Local Eats", // Default
+            cuisineEmoji: "📍", // Default
             menu: []
         };
 
+        // Expanded presets designed specifically for the walkthrough demo
         const presets = {
-            mexican: [
-                { name: "Al Pastor Taco", price: "4.50" },
-                { name: "Carne Asada Burrito", price: "12.00" },
-                { name: "Street Corn (Esquites)", price: "5.00" }
-            ],
-            american: [
-                { name: "Double Smashburger", price: "11.00" },
-                { name: "Truffle Parm Fries", price: "6.50" },
-                { name: "Vanilla Bean Shake", price: "5.00" }
-            ],
-            asian: [
-                { name: "Pork Belly Bao (2)", price: "9.00" },
-                { name: "Spicy Peanut Noodles", price: "13.00" },
-                { name: "Thai Iced Tea", price: "4.50" }
-            ]
+            mexican: {
+                subheader: "Authentic Mexican Food",
+                emoji: "🌮",
+                items: [
+                    { name: "Street Taco", price: 3.50, desc: "Meat, cilantro, onion.", prep: "2 mins", hasMeat: true, meats: "Asada, Pastor, Pollo, Camaron", camaronUpcharge: 1.00, hasFlourTortillaOption: false, isDrink: false },
+                    { name: "Super Quesadilla", price: 12.00, desc: "Meat & melted cheese.", prep: "5 mins", hasMeat: true, meats: "Asada, Pastor, Pollo", camaronUpcharge: null, hasFlourTortillaOption: true, isDrink: false },
+                    { name: "Agua Fresca (32oz)", price: 5.00, desc: "Ice cold fruit drinks.", prep: "1 mins", hasMeat: false, isDrink: true, options: ["Horchata", "Jamaica", "Limonada"] }
+                ]
+            },
+            american: {
+                subheader: "Premium Burgers & Fries",
+                emoji: "🍔",
+                items: [
+                    { name: "Double Smashburger", price: 11.00, desc: "Two beef patties, cheese, house sauce.", prep: "6 mins", hasMeat: true, meats: "Standard, Add Bacon", camaronUpcharge: 2.00, hasFlourTortillaOption: false, isDrink: false }, // Using camaronUpcharge logic as a generic upcharge for bacon
+                    { name: "Loaded Fries", price: 8.00, desc: "Crispy fries smothered in cheese.", prep: "4 mins", hasMeat: false, hasFlourTortillaOption: false, isDrink: false },
+                    { name: "Hand-Spun Shake", price: 6.00, desc: "Thick ice cream shakes.", prep: "2 mins", hasMeat: false, isDrink: true, options: ["Vanilla Bean", "Chocolate", "Strawberry"] }
+                ]
+            },
+            asian: {
+                subheader: "Modern Asian Fusion",
+                emoji: "🥡",
+                items: [
+                    { name: "Pork Belly Bao (2)", price: 9.00, desc: "Steamed buns, glazed pork belly.", prep: "5 mins", hasMeat: false, hasFlourTortillaOption: false, isDrink: false },
+                    { name: "Spicy Peanut Noodles", price: 13.00, desc: "Wok-tossed noodles.", prep: "7 mins", hasMeat: true, meats: "Chicken, Tofu, Shrimp", camaronUpcharge: 3.00, hasFlourTortillaOption: false, isDrink: false },
+                    { name: "Thai Iced Tea", price: 4.50, desc: "Sweet, creamy, and chilled.", prep: "1 mins", hasMeat: false, isDrink: false }
+                ]
+            }
         };
 
         let currentSlide = 1;
+        const totalSlides = 5;
 
         function goToSlide(step) {
             document.getElementById(`slide-${currentSlide}`).classList.remove('active');
             document.getElementById(`slide-${currentSlide}`).classList.add('previous');
             currentSlide = step;
             document.getElementById(`slide-${currentSlide}`).classList.add('active');
-            document.getElementById('progress-bar').style.width = `${(step / 4) * 100}%`;
+            document.getElementById('progress-bar').style.width = `${((step - 1) / (totalSlides - 1)) * 100}%`;
         }
 
+        // Slide 1 Logic (New)
         function submitSlide1() {
-            const inputField = document.getElementById('truck-name');
-            systemData.truckName = inputField.value.trim() || "My Food Truck";
-            inputField.blur(); 
+            const nameField = document.getElementById('owner-name');
+            const igField = document.getElementById('owner-ig');
+            systemData.ownerName = nameField.value.trim() || "Partner";
+            
+            // Clean up IG handle (remove @ if they typed it)
+            let ig = igField.value.trim();
+            if(ig.startsWith('@')) ig = ig.substring(1);
+            systemData.ownerIG = ig;
+            
+            nameField.blur(); 
+            igField.blur();
             goToSlide(2);
         }
 
-        document.getElementById('truck-name').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                submitSlide1();
-            }
-        });
-
-        function selectTheme(name, hex) {
-            systemData.themeName = name;
-            systemData.themeColor = hex;
+        // Slide 2 Logic
+        function submitSlide2() {
+            const inputField = document.getElementById('truck-name');
+            systemData.truckName = inputField.value.trim() || "My Food Truck";
+            inputField.blur(); 
             goToSlide(3);
         }
 
+        // Slide 3 Logic (Updated to capture theme class for CSS targeting)
+        function selectTheme(name, hex, themeClass) {
+            systemData.themeName = name;
+            systemData.themeColor = hex;
+            systemData.themeClass = themeClass;
+            goToSlide(4);
+        }
+
+        // Slide 4 Logic - Presets (Updated to capture branding logic)
         function selectPreset(type) {
-            systemData.menu = presets[type];
+            systemData.cuisineSubheader = presets[type].subheader;
+            systemData.cuisineEmoji = presets[type].emoji;
+            systemData.menu = presets[type].items;
             finalizeSystem();
         }
 
+        // Slide 4 Logic - Custom
         function submitCustomMenu() {
             const names = document.querySelectorAll('.custom-name');
             const prices = document.querySelectorAll('.custom-price');
             
             for(let i=0; i<3; i++) {
                 if(names[i].value.trim() !== '') {
+                    // Build a generic complex item so walkthrough works even on custom
                     systemData.menu.push({
                         name: names[i].value.trim(),
-                        price: prices[i].value || "0.00"
+                        price: parseFloat(prices[i].value) || 0.00,
+                        desc: "Signature house item.",
+                        prep: "4 mins",
+                        hasMeat: i === 0 ? true : false, // Make first item have a generic upcharge for the demo
+                        meats: i === 0 ? "Standard, Add Premium Protein" : null,
+                        camaronUpcharge: i === 0 ? 2.00 : null,
+                        hasFlourTortillaOption: false,
+                        isDrink: false
                     });
                 }
             }
 
-            if(systemData.menu.length === 0) systemData.menu = presets['mexican'];
+            // Fallback
+            if(systemData.menu.length === 0) {
+                systemData.cuisineSubheader = presets['mexican'].subheader;
+                systemData.cuisineEmoji = presets['mexican'].emoji;
+                systemData.menu = presets['mexican'].items;
+            }
+            
             finalizeSystem();
         }
 
+        // Final Handoff
         function finalizeSystem() {
-            goToSlide(4);
+            goToSlide(5);
             localStorage.setItem('demo_config', JSON.stringify(systemData));
             
             const textElement = document.getElementById('loading-text');
-            setTimeout(() => { textElement.innerText = "Provisioning Customer Portal..."; }, 1000);
-            setTimeout(() => { textElement.innerText = "Syncing Local Storage Engine..."; }, 2000);
+            setTimeout(() => { textElement.innerText = `Provisioning ${systemData.truckName} Portal...`; }, 1000);
+            setTimeout(() => { textElement.innerText = "Syncing Walkthrough Engine..."; }, 2000);
             setTimeout(() => { 
                 textElement.innerText = "System Ready. Redirecting."; 
-                // Points directly to your customer.html file
-                window.location.href = "customer.html"; 
+                window.location.href = "portal.html"; 
             }, 3000);
         }
     </script>
