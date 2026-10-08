@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- strict viewport lock prevents the phone from zooming in or sliding horizontally -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Management Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -94,7 +93,7 @@
             <!-- Tab 3: Settings & Locations -->
             <div id="ownerTabSettings" class="space-y-5 hidden relative">
                 <!-- Status & Rush -->
-                <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+                <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4" id="statusRushBox">
                     <h3 class="font-bold text-sm text-zinc-100 mb-3 border-b border-zinc-800 pb-2">Operational Status</h3>
                     <div class="flex gap-2">
                         <button id="btnStatusOpen" onclick="setStoreStatus('open')" class="flex-1 py-2 rounded-lg text-xs font-bold transition bg-emerald-600 text-white">Open Now</button>
@@ -262,7 +261,7 @@
             }
         }
 
-        // WALKTHROUGH ENGINE (14 Steps)
+        // WALKTHROUGH ENGINE (15 Steps)
         const walkthroughSteps = [
             { trigger: () => { wtShow("Security First", "Your backend is PIN-protected. Enter your PIN and click Unlock.", "login-box", false, 'top'); } },
             { trigger: () => { wtShow("Team Management", "Track employee hours easily. Click the Time Clock widget at the top right of your screen.", "time-clock-widget", false, 'bottom'); } },
@@ -284,12 +283,13 @@
             { trigger: () => { wtShow("Live Editor", "Update anything here and it syncs instantly to the customer site. Save and close for now.", "btn-save-edit", false, 'top'); } },
             { trigger: () => { 
                 const btnToggle = document.querySelector('.toggle-wrapper');
-                if(btnToggle) { btnToggle.id = 'wt-target-toggle'; wtShow("Instant 86'ing", "Click this toggle to instantly mark an item 'Sold Out' on the customer menu.", "wt-target-toggle", false, 'bottom'); } else wtNextStep();
+                if(btnToggle) { btnToggle.id = 'wt-target-toggle'; wtShow("Instant Removal", "Click this toggle to instantly mark an item 'Sold Out' on the customer menu.", "wt-target-toggle", false, 'bottom'); } else wtNextStep();
             }},
             { trigger: () => { wtShow("Store Control", "You can also control operations on the fly. Click the Settings tab.", "tabBtnSettings", false, 'bottom'); } },
-            { trigger: () => { wtShow("Rush Mode & Locations", "Here you can close the store, add +15 min wait times during a rush, or manage your parking locations.", "locationManagerBox", true, 'top', "Next"); } },
+            { trigger: () => { wtShow("Operational Status", "Instantly close the store or add +15 to +30 minute wait times to the customer site during a rush.", "statusRushBox", true, 'bottom', "Next"); } },
+            { trigger: () => { wtShow("Location Manager", "You can manage your parking locations here. Let's move on.", "locationManagerBox", true, 'top', "Next"); } },
             { trigger: () => { wtShow("Financial Reporting", "Finally, let's look at the numbers. Click the Analytics tab.", "tabBtnAnalytics", false, 'bottom'); } },
-            { trigger: () => { wtShow("Real-Time Tracking", "Your revenue and volume update automatically. Your system tour is complete!", "analytics-dash", true, 'top', "Finish Tour"); } }
+            { trigger: () => { wtShow("Real-Time Tracking", "Your revenue and volume update automatically. Your system tour is complete!", "analytics-dash", true, 'extreme-bottom', "Finish Tour"); } }
         ];
 
         function wtShow(title, text, targetId, showNextBtn = false, positionHint = 'auto', customBtnText = "Next") {
@@ -313,14 +313,15 @@
                         current = current.parentElement;
                     }
                     tooltip.style.display = 'flex';
-                    if (positionHint === 'top') { tooltip.style.bottom = 'auto'; tooltip.style.top = '5%'; } 
-                    else if (positionHint === 'bottom') { tooltip.style.top = 'auto'; tooltip.style.bottom = '5%'; } 
+                    if (positionHint === 'top') { tooltip.style.bottom = 'auto'; tooltip.style.top = '5%'; tooltip.style.transform = 'translateX(-50%)'; } 
+                    else if (positionHint === 'bottom') { tooltip.style.top = 'auto'; tooltip.style.bottom = '5%'; tooltip.style.transform = 'translateX(-50%)'; } 
+                    else if (positionHint === 'extreme-bottom') { tooltip.style.top = 'auto'; tooltip.style.bottom = '2%'; tooltip.style.transform = 'translateX(-50%)'; }
                     else {
                         const rect = target.getBoundingClientRect();
-                        if (rect.top < window.innerHeight / 2) { tooltip.style.top = 'auto'; tooltip.style.bottom = '10%'; } else { tooltip.style.bottom = 'auto'; tooltip.style.top = '10%'; }
+                        if (rect.top < window.innerHeight / 2) { tooltip.style.top = 'auto'; tooltip.style.bottom = '10%'; tooltip.style.transform = 'translateX(-50%)'; } else { tooltip.style.bottom = 'auto'; tooltip.style.top = '10%'; tooltip.style.transform = 'translateX(-50%)'; }
                     }
                 }
-            } else { tooltip.style.display = 'flex'; tooltip.style.bottom = 'auto'; tooltip.style.top = '40%'; }
+            } else { tooltip.style.display = 'flex'; tooltip.style.bottom = 'auto'; tooltip.style.top = '40%'; tooltip.style.transform = 'translateX(-50%)'; }
         }
 
         function wtNextStep() {
@@ -378,7 +379,7 @@
             if (tabName === 'Orders') renderOwnerPortal();
             if (tabName === 'Menu') { renderOwnerMenuEditor(); if(app.wtActive && app.wtStep === 6) wtNextStep(); }
             if (tabName === 'Settings') { renderSettings(); if(app.wtActive && app.wtStep === 10) wtNextStep(); }
-            if (tabName === 'Analytics') { renderAnalytics(); if(app.wtActive && app.wtStep === 12) wtNextStep(); }
+            if (tabName === 'Analytics') { renderAnalytics(); if(app.wtActive && app.wtStep === 13) wtNextStep(); }
         }
 
         function initOwnerPortal() { renderOwnerPortal(); renderOwnerMenuEditor(); renderSettings(); renderAnalytics(); }
@@ -408,8 +409,8 @@
                 if(item.salePrice && item.salePrice > 0) priceStr = `<span class="line-through text-zinc-600 mr-1">$${item.price.toFixed(2)}</span> <span class="text-red-500 font-bold">$${item.salePrice.toFixed(2)}</span>`;
                 return `
                 <div class="bg-zinc-900 border border-zinc-800 p-4 rounded-xl flex justify-between items-center text-xs">
-                    <div><div class="font-bold text-zinc-100">${item.name}</div><div class="theme-text text-[11px] mt-0.5">${priceStr} • Prep: ${item.prep}m</div></div>
-                    <div class="flex items-center gap-3"><button onclick="openEditItem(${item.id})" class="btn-wt-edit bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1.5 rounded-lg text-[10px] font-semibold transition">Edit</button><span class="text-[10px] text-zinc-500 font-medium uppercase tracking-wider hidden sm:inline">86 / Sold Out</span><div class="relative inline-block w-10 mr-1 align-middle select-none transition duration-200 ease-in toggle-wrapper" onclick="toggleSoldOut(this)"><input type="checkbox" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-zinc-700 z-10 transition-transform duration-200 ease-in-out"/><label class="toggle-label block overflow-hidden h-5 rounded-full bg-zinc-700 cursor-pointer"></label></div></div>
+                    <div><div class="font-bold text-zinc-100">${item.name}</div><div class="theme-text text-[11px] mt-0.5">${priceStr} • Prep: ${item.prep} mins</div></div>
+                    <div class="flex items-center gap-3"><button onclick="openEditItem(${item.id})" class="btn-wt-edit bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1.5 rounded-lg text-[10px] font-semibold transition">Edit</button><span class="text-[10px] text-zinc-500 font-medium uppercase tracking-wider hidden sm:inline">Instant Removal</span><div class="relative inline-block w-10 mr-1 align-middle select-none transition duration-200 ease-in toggle-wrapper" onclick="toggleSoldOut(this)"><input type="checkbox" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-zinc-700 z-10 transition-transform duration-200 ease-in-out"/><label class="toggle-label block overflow-hidden h-5 rounded-full bg-zinc-700 cursor-pointer"></label></div></div>
                 </div>`
             }).join('');
         }
