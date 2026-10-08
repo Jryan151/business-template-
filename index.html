@@ -297,32 +297,30 @@
             menu: []
         };
 
+        // Presets dynamically injected with a Sale item and a Sold Out item
         const presets = {
             mexican: {
-                subheader: "Authentic Mexican Food",
-                emoji: "🌮",
+                subheader: "Authentic Mexican Food", emoji: "🌮",
                 items: [
-                    { name: "Street Taco", price: 3.50, desc: "Meat, cilantro, onion.", prep: "2 mins", hasMeat: true, meats: "Asada, Pastor, Pollo, Camaron", premiumUpcharge: 1.00, hasFlourTortillaOption: false, isDrink: false },
-                    { name: "Super Quesadilla", price: 12.00, desc: "Meat & melted cheese.", prep: "5 mins", hasMeat: true, meats: "Asada, Pastor, Pollo", premiumUpcharge: null, hasFlourTortillaOption: true, isDrink: false },
-                    { name: "Agua Fresca (32oz)", price: 5.00, desc: "Ice cold fruit drinks.", prep: "1 mins", hasMeat: false, isDrink: true, options: ["Horchata", "Jamaica", "Limonada"] }
+                    { name: "Street Taco", price: 3.50, desc: "Meat, cilantro, onion.", prep: 2, hasMeat: true, meats: "Asada, Pastor, Pollo, Camaron", premiumUpcharge: 1.00, soldOut: false },
+                    { name: "Super Quesadilla", price: 12.00, salePrice: 9.50, desc: "Meat & melted cheese.", prep: 5, hasMeat: true, meats: "Asada, Pastor, Pollo", premiumUpcharge: null, soldOut: false },
+                    { name: "Agua Fresca (32oz)", price: 5.00, desc: "Ice cold fruit drinks.", prep: 1, hasMeat: false, soldOut: true, options: ["Horchata", "Jamaica", "Limonada"] }
                 ]
             },
             american: {
-                subheader: "Premium Burgers & Fries",
-                emoji: "🍔",
+                subheader: "Premium Burgers & Fries", emoji: "🍔",
                 items: [
-                    { name: "Double Smashburger", price: 11.00, desc: "Two beef patties, cheese, house sauce.", prep: "6 mins", hasMeat: true, meats: "Standard, Add Bacon", premiumUpcharge: 2.00, hasFlourTortillaOption: false, isDrink: false }, 
-                    { name: "Loaded Fries", price: 8.00, desc: "Crispy fries smothered in cheese.", prep: "4 mins", hasMeat: false, hasFlourTortillaOption: false, isDrink: false },
-                    { name: "Hand-Spun Shake", price: 6.00, desc: "Thick ice cream shakes.", prep: "2 mins", hasMeat: false, isDrink: true, options: ["Vanilla Bean", "Chocolate", "Strawberry"] }
+                    { name: "Double Smashburger", price: 11.00, desc: "Two beef patties, cheese, house sauce.", prep: 6, hasMeat: true, meats: "Standard, Add Bacon", premiumUpcharge: 2.00, soldOut: false }, 
+                    { name: "Loaded Fries", price: 8.00, salePrice: 6.00, desc: "Crispy fries smothered in cheese.", prep: 4, hasMeat: false, soldOut: false },
+                    { name: "Hand-Spun Shake", price: 6.00, desc: "Thick ice cream shakes.", prep: 2, hasMeat: false, soldOut: true, options: ["Vanilla Bean", "Chocolate", "Strawberry"] }
                 ]
             },
             asian: {
-                subheader: "Modern Asian Fusion",
-                emoji: "🥡",
+                subheader: "Modern Asian Fusion", emoji: "🥡",
                 items: [
-                    { name: "Pork Belly Bao (2)", price: 9.00, desc: "Steamed buns, glazed pork belly.", prep: "5 mins", hasMeat: false, hasFlourTortillaOption: false, isDrink: false },
-                    { name: "Spicy Peanut Noodles", price: 13.00, desc: "Wok-tossed noodles.", prep: "7 mins", hasMeat: true, meats: "Chicken, Tofu, Shrimp", premiumUpcharge: 3.00, hasFlourTortillaOption: false, isDrink: false },
-                    { name: "Thai Iced Tea", price: 4.50, desc: "Sweet, creamy, and chilled.", prep: "1 mins", hasMeat: false, isDrink: false }
+                    { name: "Spicy Peanut Noodles", price: 13.00, desc: "Wok-tossed noodles.", prep: 7, hasMeat: true, meats: "Chicken, Tofu, Shrimp", premiumUpcharge: 3.00, soldOut: false },
+                    { name: "Pork Belly Bao (2)", price: 9.00, salePrice: 7.50, desc: "Steamed buns, glazed pork belly.", prep: 5, hasMeat: false, soldOut: false },
+                    { name: "Thai Iced Tea", price: 4.50, desc: "Sweet, creamy, and chilled.", prep: 1, hasMeat: false, soldOut: true }
                 ]
             }
         };
@@ -340,30 +338,20 @@
 
         function submitSlide1() {
             systemData.ownerName = document.getElementById('owner-name').value.trim();
-            
-            // Clean up IG handle (remove spaces and leading @)
             let ig = document.getElementById('owner-ig').value.trim();
             ig = ig.replace(/\s+/g, '');
             if(ig.startsWith('@')) ig = ig.substring(1);
             systemData.ownerIG = ig;
-            
             document.getElementById('owner-name').blur(); 
             document.getElementById('owner-ig').blur();
-            
-            // If they skip name, we catch it in finalize, but proceed for now
             goToSlide(2);
         }
 
         function submitSlide2() {
             systemData.truckName = document.getElementById('truck-name').value.trim();
             document.getElementById('truck-name').blur(); 
-            
-            // If they skip everything, jump straight to the end to generate the default demo
-            if(systemData.ownerName === "" && systemData.truckName === "") {
-                finalizeSystem();
-            } else {
-                goToSlide(3);
-            }
+            if(systemData.ownerName === "" && systemData.truckName === "") finalizeSystem();
+            else goToSlide(3);
         }
 
         function selectTheme(name, hex, themeClass) {
@@ -383,19 +371,20 @@
         function submitCustomMenu() {
             const names = document.querySelectorAll('.custom-name');
             const prices = document.querySelectorAll('.custom-price');
-            
             for(let i=0; i<3; i++) {
                 if(names[i].value.trim() !== '') {
+                    // Make Item 2 a Sale item, and Item 3 a Sold Out item automatically for the demo
+                    const basePrice = parseFloat(prices[i].value) || 5.00;
                     systemData.menu.push({
                         name: names[i].value.trim(),
-                        price: parseFloat(prices[i].value) || 0.00,
+                        price: basePrice,
+                        salePrice: i === 1 ? (basePrice * 0.8) : null, // 20% off
                         desc: "Signature house item.",
-                        prep: "4 mins",
+                        prep: 4,
                         hasMeat: i === 0 ? true : false,
                         meats: i === 0 ? "Standard, Add Premium Protein" : null,
                         premiumUpcharge: i === 0 ? 2.00 : null,
-                        hasFlourTortillaOption: false,
-                        isDrink: false
+                        soldOut: i === 2 ? true : false
                     });
                 }
             }
@@ -416,15 +405,18 @@
                 systemData.cuisineEmoji = presets['american'].emoji;
                 systemData.menu = presets['american'].items;
             } else if (!systemData.cuisineSubheader) {
-                // If they typed a custom menu but didn't pick a preset
                 systemData.cuisineSubheader = "Fresh Local Eats";
                 systemData.cuisineEmoji = "🧑‍🍳";
             }
 
             goToSlide(5);
             
-            // Delete the walkthrough completion flag so the guide ALWAYS runs
+            // Clean up old demo artifacts
             localStorage.removeItem('wt_completed_customer');
+            localStorage.removeItem('foodtruck_orders');
+            localStorage.removeItem('foodtruck_history');
+            localStorage.removeItem('foodtruck_store_status');
+            localStorage.removeItem('foodtruck_rush_mode');
             
             // Save payload to memory
             localStorage.setItem('demo_config', JSON.stringify(systemData));
