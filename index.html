@@ -215,8 +215,8 @@
         
         <!-- Slide 1: Owner Details -->
         <div class="slide active" id="slide-1">
-            <h1>Let's get acquainted.</h1>
-            <p class="subtitle">Who is running the show?</p>
+            <h1>Who is running the show?</h1>
+            <p class="subtitle">Let's set up your profile.</p>
             <input type="text" id="owner-name" placeholder="Your Name (e.g., Alex)" autocomplete="off" autofocus>
             <input type="text" id="owner-ig" placeholder="Instagram @handle (Optional)" autocomplete="off">
             <button class="btn-primary" onclick="submitSlide1()">Next</button>
@@ -224,7 +224,7 @@
 
         <!-- Slide 2: Identity -->
         <div class="slide" id="slide-2">
-            <h1>What is your food truck's name?</h1>
+            <h1>What is your vendor name?</h1>
             <p class="subtitle">Let's set up your digital kitchen.</p>
             <input type="text" id="truck-name" placeholder="e.g., Bite Street Tacos" autocomplete="off">
             <button class="btn-primary" onclick="submitSlide2()">Next</button>
@@ -373,12 +373,11 @@
             const prices = document.querySelectorAll('.custom-price');
             for(let i=0; i<3; i++) {
                 if(names[i].value.trim() !== '') {
-                    // Make Item 2 a Sale item, and Item 3 a Sold Out item automatically for the demo
                     const basePrice = parseFloat(prices[i].value) || 5.00;
                     systemData.menu.push({
                         name: names[i].value.trim(),
                         price: basePrice,
-                        salePrice: i === 1 ? (basePrice * 0.8) : null, // 20% off
+                        salePrice: i === 1 ? (basePrice * 0.8) : null,
                         desc: "Signature house item.",
                         prep: 4,
                         hasMeat: i === 0 ? true : false,
@@ -392,9 +391,14 @@
         }
 
         function finalizeSystem() {
-            // SAFETY NET: Fill in default values if the user skipped questions
             if (!systemData.ownerName) systemData.ownerName = "Partner";
             if (!systemData.truckName) systemData.truckName = "Demo Food Truck";
+            
+            // Auto-generate IG handle if skipped
+            if (!systemData.ownerIG || systemData.ownerIG === "") {
+                systemData.ownerIG = systemData.truckName.toLowerCase().replace(/[^a-z0-9]/g, '');
+            }
+
             if (!systemData.themeClass) {
                 systemData.themeName = "Obsidian Black";
                 systemData.themeColor = "#1A1A1A";
@@ -411,14 +415,13 @@
 
             goToSlide(5);
             
-            // Clean up old demo artifacts
             localStorage.removeItem('wt_completed_customer');
             localStorage.removeItem('foodtruck_orders');
             localStorage.removeItem('foodtruck_history');
             localStorage.removeItem('foodtruck_store_status');
             localStorage.removeItem('foodtruck_rush_mode');
+            localStorage.removeItem('foodtruck_next_order_id');
             
-            // Save payload to memory
             localStorage.setItem('demo_config', JSON.stringify(systemData));
             
             const textElement = document.getElementById('loading-text');
