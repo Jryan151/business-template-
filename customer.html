@@ -27,14 +27,13 @@
             border-radius: 6px; font-weight: 600; cursor: pointer; text-align: center; font-size: 0.8rem; margin-top: 0.5rem;
         }
         
-        /* Elevates the specific target element AND its parent containers above the overlay */
         .wt-spotlight { position: relative; z-index: 9999 !important; border-radius: inherit; pointer-events: auto !important; }
         .wt-parent-override { z-index: 9999 !important; }
         .wt-spotlight-pulse { animation: wtPulse 2s infinite; }
         @keyframes wtPulse { 0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.5); } 70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); } }
     </style>
 </head>
-<body class="bg-zinc-950 text-zinc-100 font-sans min-h-screen pb-20 flex flex-col justify-between" id="appBody">
+<body class="bg-zinc-950 text-zinc-100 font-sans min-h-screen flex flex-col justify-between" id="appBody">
     
     <!-- Walkthrough Elements -->
     <div class="wt-overlay" id="wtOverlay"></div>
@@ -47,9 +46,9 @@
         <button class="wt-tooltip-btn" id="wtNextBtn">Got it</button>
     </div>
 
-    <div class="max-w-md mx-auto w-full flex-grow relative">
+    <div class="max-w-md mx-auto w-full flex-grow relative pb-8">
         <!-- Landing View -->
-        <div id="landingView" class="p-6 flex flex-col items-center justify-center min-h-[90vh] text-center">
+        <div id="landingView" class="p-6 flex flex-col items-center justify-center min-h-[85vh] text-center">
             <div class="w-24 h-24 rounded-full border-2 border-pink-500 p-1 mb-4 flex items-center justify-center shadow-lg shadow-pink-500/10 theme-border theme-shadow">
                 <span class="text-4xl" id="dynamic-emoji">🌮</span>
             </div>
@@ -60,19 +59,22 @@
                 <div class="flex justify-between items-center mb-1">
                     <label class="text-[11px] text-zinc-400 font-medium">📍 Active Truck Location (Click to Map):</label>
                 </div>
-                <div id="activeLocationDisplay" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2.5 text-xs text-zinc-300 font-medium"></div>
+                <div id="activeLocationDisplay" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2.5 text-xs text-zinc-300 font-medium">Downtown Main Street</div>
             </div>
 
-            <div id="storeStatusBadge" class="bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-4 py-2 text-xs mb-6 text-emerald-400 flex items-center gap-2 w-full justify-center">
+            <div id="storeStatusBadge" class="bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-4 py-2 text-xs mb-3 text-emerald-400 flex items-center gap-2 w-full justify-center">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span id="storeStatusText">Open Now • Until 6:00 PM</span>
+                <span id="storeStatusText">Open Now • Accepting Orders</span>
             </div>
 
-            <div class="w-full space-y-3 relative">
+            <!-- Dynamic Rush Mode Container -->
+            <div id="rushStatusContainer" class="w-full"></div>
+
+            <div class="w-full space-y-3 relative mt-3">
                 <button onclick="switchView('menu')" id="btn-start-order" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-semibold py-3.5 rounded-xl transition shadow-lg shadow-pink-600/25 theme-bg theme-shadow">Start Order</button>
             </div>
 
-            <div class="mt-12 text-center" id="ig-container" style="display:none;">
+            <div class="mt-10 text-center" id="ig-container" style="display:none;">
                 <a href="#" target="_blank" id="dynamic-ig-link" class="text-xs text-pink-500 hover:text-pink-400 tracking-wider font-medium flex items-center justify-center gap-1.5 theme-text"><span>📷</span> @<span id="dynamic-ig-text">username</span></a>
             </div>
         </div>
@@ -90,7 +92,7 @@
                 <div id="popularHighlightsContainer" class="grid grid-cols-3 gap-2 text-center mt-2"></div>
             </div>
 
-            <div id="menuContainer" class="space-y-6 relative"></div>
+            <div id="menuContainer" class="space-y-6 relative pb-20"></div>
             
             <div class="fixed bottom-4 left-4 right-4 max-w-md mx-auto z-40 relative">
                 <button onclick="openCartModal()" id="btn-view-cart" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-semibold py-3 rounded-xl shadow-xl flex justify-between px-5 items-center transition-all theme-bg">
@@ -101,12 +103,21 @@
             </div>
         </div>
 
-        <!-- Tracker View -->
-        <div id="trackerView" class="p-4 hidden">
+        <!-- Tracker View (Added padding to prevent blocking) -->
+        <div id="trackerView" class="p-4 hidden relative z-10 pb-28">
             <h2 class="font-bold text-lg mb-4 text-center border-b border-zinc-900 pb-2">Order Tracker</h2>
             <div class="space-y-3" id="activeOrdersList"></div>
-            <button onclick="window.location.href='owner.html'" id="btn-route-owner" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-semibold py-3.5 rounded-xl transition shadow-lg mt-6 hidden theme-bg">Enter Owner Backend →</button>
+            
+            <!-- Floating Button to not obscure tracking items -->
+            <div class="fixed bottom-6 left-4 right-4 max-w-md mx-auto z-40">
+                <button onclick="window.location.href='owner.html'" id="btn-route-owner" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-semibold py-3.5 rounded-xl transition shadow-lg hidden theme-bg">Enter Owner Backend →</button>
+            </div>
         </div>
+    </div>
+
+    <!-- Persistent Admin Footer -->
+    <div class="w-full text-center py-5 mt-auto bg-zinc-950 relative z-0 border-t border-zinc-900/50">
+        <a href="owner.html" class="text-[10px] text-zinc-600 hover:text-zinc-400 font-medium tracking-wide uppercase">Admin Portal Login</a>
     </div>
 
     <!-- Item Modal -->
@@ -141,8 +152,9 @@
         <div class="bg-zinc-900 border border-zinc-800 w-full max-w-sm rounded-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto" id="cart-content-box">
             <div class="flex justify-between items-center border-b border-zinc-800 pb-3"><h3 class="font-bold text-lg">Your Order Cart</h3><button onclick="closeCartModal()" class="text-zinc-400 hover:text-white text-sm">✕</button></div>
             
+            <!-- Removed 'Dynamic' phrasing per instructions -->
             <div id="cartWaitTimeContainer" class="bg-amber-500/10 border border-amber-500/30 rounded-lg p-2.5 flex items-center justify-between text-xs">
-                <span class="text-amber-400 font-medium">⏱️ Dynamic Wait Time:</span>
+                <span class="text-amber-400 font-medium">⏱️ Wait Time:</span>
                 <span id="cartEstimatedWait" class="font-bold text-amber-400 font-mono">0 mins</span>
             </div>
 
@@ -179,7 +191,7 @@
             firstItemId: 1
         };
 
-        // CORE ENGINE SETUP
+        // CORE ENGINE SETUP (Syncs with Owner Backend Settings)
         function applyDemoConfig() {
             const configData = localStorage.getItem('demo_config');
             if (!configData) return false;
@@ -187,21 +199,18 @@
             app.config = JSON.parse(configData);
             const c = app.config;
 
-            // Apply Branding
             if (c.truckName) {
                 document.getElementById('dynamic-truck-name').innerText = c.truckName;
                 document.title = c.truckName + " - Order";
             }
             if (c.cuisineSubheader) document.getElementById('dynamic-subheader').innerText = c.cuisineSubheader;
             if (c.cuisineEmoji) document.getElementById('dynamic-emoji').innerText = c.cuisineEmoji;
-            
             if (c.ownerIG && c.ownerIG !== "") {
                 document.getElementById('ig-container').style.display = 'block';
                 document.getElementById('dynamic-ig-text').innerText = c.ownerIG;
                 document.getElementById('dynamic-ig-link').href = `https://instagram.com/${c.ownerIG}`;
             }
 
-            // Apply Strict Menu
             if (c.menu && c.menu.length > 0) {
                 app.menu = c.menu.map((item, index) => {
                     item.id = index + 1;
@@ -211,11 +220,41 @@
                 app.firstItemId = app.menu[0].id;
             }
 
-            // NUCLEAR CSS OVERRIDE ENGINE
+            // Sync Store Settings (Location, Status, Rush Mode)
+            const loc = localStorage.getItem('foodtruck_active_location') || "Downtown Main Street (Live View)";
+            document.getElementById('activeLocationDisplay').innerText = loc;
+
+            const storeStatus = localStorage.getItem('foodtruck_store_status') || 'open';
+            const startBtn = document.getElementById('btn-start-order');
+            const statusText = document.getElementById('storeStatusText');
+            const statusBadge = document.getElementById('storeStatusBadge');
+            
+            if(storeStatus === 'closed') {
+                startBtn.disabled = true;
+                startBtn.innerText = "Currently Closed";
+                startBtn.classList.replace('bg-pink-600', 'bg-zinc-800');
+                startBtn.classList.remove('theme-bg', 'theme-shadow');
+                statusText.innerText = "Closed Right Now";
+                statusBadge.classList.replace('bg-emerald-500/10', 'bg-rose-500/10');
+                statusBadge.classList.replace('text-emerald-400', 'text-rose-400');
+                statusBadge.classList.replace('border-emerald-500/30', 'border-rose-500/30');
+                statusText.previousElementSibling.classList.replace('bg-emerald-500', 'bg-rose-500'); 
+            }
+
+            const rushMode = parseInt(localStorage.getItem('foodtruck_rush_mode')) || 0;
+            const rushContainer = document.getElementById('rushStatusContainer');
+            if(rushMode === 15 && storeStatus !== 'closed') {
+                rushContainer.innerHTML = `<div class="bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-2 text-xs mb-3 text-amber-500 flex items-center justify-center font-bold shadow-lg shadow-amber-500/5">⚠️ Busier than usual: +15 min wait times</div>`;
+            } else if(rushMode === 30 && storeStatus !== 'closed') {
+                rushContainer.innerHTML = `<div class="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-2 text-xs mb-3 text-red-500 flex items-center justify-center font-bold shadow-lg shadow-red-500/5">🚨 Very Busy: +30 min wait times</div>`;
+            } else {
+                rushContainer.innerHTML = '';
+            }
+
+            // CSS OVERRIDE
             if (c.themeClass) document.body.classList.add(c.themeClass);
             if (c.themeColor || c.themeClass) {
                 const brandColor = c.themeColor || "#ec4899"; 
-                
                 let extraCSS = `
                     .theme-bg { background-color: ${brandColor} !important; color: #fff !important; }
                     .theme-bg-dark { background-color: ${brandColor} !important; filter: brightness(0.8) !important; color: #fff !important; }
@@ -223,83 +262,50 @@
                     .theme-border { border-color: ${brandColor} !important; }
                     .theme-shadow { box-shadow: 0 4px 15px ${brandColor}40 !important; }
                 `;
-
                 if (c.themeClass === 'theme-cleanslate') {
-                    extraCSS += `
-                        .theme-bg, .theme-bg-dark { background-color: #111 !important; color: #fff !important; }
-                        .theme-text { color: #111 !important; }
-                        .theme-border { border-color: #333 !important; }
-                    `;
-                } else if (c.themeClass === 'theme-slate') {
-                    extraCSS += `.menu-item-price { color: #ffffff !important; font-weight: bold; }`;
+                    extraCSS += `.theme-bg, .theme-bg-dark { background-color: #111 !important; color: #fff !important; } .theme-text { color: #111 !important; } .theme-border { border-color: #333 !important; }`;
                 } else if (c.themeClass === 'theme-obsidian') {
-                    extraCSS += `
-                        #dynamic-ig-link { color: #E1306C !important; }
-                        .theme-bg, .theme-bg-dark { background-color: #fff !important; color: #000 !important; }
-                        .theme-text { color: #ddd !important; }
-                        .theme-border { border-color: #ddd !important; }
-                    `;
+                    extraCSS += `.theme-bg, .theme-bg-dark { background-color: #fff !important; color: #000 !important; } .theme-text { color: #ddd !important; } .theme-border { border-color: #ddd !important; }`;
                 }
-
                 const style = document.createElement('style');
                 style.innerHTML = extraCSS;
                 document.head.appendChild(style);
-                
                 document.getElementById('wtTooltip').style.borderColor = c.themeClass === 'theme-cleanslate' ? '#000' : brandColor;
             }
             return true;
         }
 
-        // FAIL-SAFE WALKTHROUGH ENGINE (Synchronized with Native App Logic)
+        // FAIL-SAFE WALKTHROUGH ENGINE
         const walkthroughSteps = [
-            { // 0
-                trigger: () => {
-                    const name = app.config?.ownerName || "Partner";
-                    wtShow(`Welcome, ${name}!`, "Your digital storefront is live. Let's place a test order to see the automation.", null, true);
-                }
-            },
-            { // 1
-                trigger: () => { wtShow("The Front Door", "Click the Start Order button to enter your menu.", "btn-start-order", false); }
-            },
-            { // 2
-                trigger: () => {
-                    const firstAddBtn = document.querySelector('.btn-add-item');
-                    if(firstAddBtn) {
-                        firstAddBtn.id = 'wt-target-add-btn';
-                        wtShow("Smart Menu Structure", "Notice the prep times. The system uses these to calculate live wait times. Click 'Add'.", "wt-target-add-btn", false);
-                    } else { wtNextStep(); }
-                }
-            },
-            { // 3
-                trigger: () => {
-                    const meatSelect = document.getElementById('itemMeatSelect');
-                    if(meatSelect && meatSelect.options.length > 1) meatSelect.selectedIndex = 1; // Auto-select upcharge
-                    wtShow("Upcharges & Logic", "If an item has modifications, the system automatically adjusts the price. Confirm and add this item.", "btn-confirm-add", false);
-                }
-            },
-            { // 4
-                trigger: () => { wtShow("Dynamic Cart", "The cart icon now tracks their total. Let's check out.", "btn-view-cart", false); }
-            },
-            { // 5
-                trigger: () => {
-                    document.getElementById('customerName').value = app.config?.ownerName || "Test Customer";
-                    wtShow("Wait Time Calculation", "Look at the top. The system calculated an exact wait estimate based on prep times. Click Place Order.", "btn-place-order", false);
-                }
-            },
-            { // 6
-                trigger: () => { wtShow("Ticket Generation", "Success! The system collected the money and generated a ticket. View the customer tracker.", "btn-view-tracker", false); }
-            },
-            { // 7
-                trigger: () => {
-                    document.getElementById('btn-route-owner').classList.remove('hidden');
-                    wtShow("Backend Handoff", "The customer waits here. Now, let's jump to your Kitchen Display to fulfill this order.", "btn-route-owner", false);
-                }
-            }
+            { trigger: () => { const name = app.config?.ownerName || "Partner"; wtShow(`Welcome, ${name}!`, "Your digital storefront is live. Let's place a test order to see the automation.", null, true); } },
+            { trigger: () => { wtShow("The Front Door", "Click the Start Order button to enter your menu.", "btn-start-order", false); } },
+            { trigger: () => {
+                const firstAddBtn = document.querySelector('.btn-add-item');
+                if(firstAddBtn) { firstAddBtn.id = 'wt-target-add-btn'; wtShow("Smart Menu Structure", "Notice the prep times. The system uses these to calculate live wait times. Click 'Add'.", "wt-target-add-btn", false); } 
+                else { wtNextStep(); }
+            }},
+            { trigger: () => {
+                const meatSelect = document.getElementById('itemMeatSelect');
+                if(meatSelect && meatSelect.options.length > 1) meatSelect.selectedIndex = 1; 
+                wtShow("Upcharges & Logic", "If an item has modifications, the system automatically adjusts the price. Confirm and add this item.", "btn-confirm-add", false, 'top');
+            }},
+            { trigger: () => { wtShow("Dynamic Cart", "The cart icon now tracks their total. Let's check out.", "btn-view-cart", false); } },
+            { trigger: () => {
+                document.getElementById('customerName').value = app.config?.ownerName || "Test Customer";
+                // positionHint 'extreme-bottom' puts the tip strictly below the modal
+                wtShow("Wait Time Calculation", "Look at the top. The system calculated an exact wait estimate based on prep times. Click Place Order.", "btn-place-order", false, 'extreme-bottom');
+            }},
+            { trigger: () => { wtShow("Ticket Generation", "Success! The system collected the money and generated a ticket. View the customer tracker.", "btn-view-tracker", false, 'top'); } },
+            { trigger: () => {
+                document.getElementById('btn-route-owner').classList.remove('hidden');
+                // hideOverlay = true, makes tracker visible behind the tip
+                wtShow("Backend Handoff", "The customer waits here. Now, let's jump to your Kitchen Display to fulfill this order.", "btn-route-owner", false, 'bottom', true);
+            }}
         ];
 
-        function wtShow(title, text, targetId, showNextBtn = false) {
+        function wtShow(title, text, targetId, showNextBtn = false, positionHint = 'auto', hideOverlay = false) {
             app.wtActive = true;
-            document.getElementById('wtOverlay').style.display = 'block';
+            document.getElementById('wtOverlay').style.display = hideOverlay ? 'none' : 'block';
             
             const tooltip = document.getElementById('wtTooltip');
             document.getElementById('wtTitle').innerText = title;
@@ -309,41 +315,36 @@
             nextBtn.style.display = showNextBtn ? 'block' : 'none';
             nextBtn.onclick = () => { wtNextStep(); };
             
-            // Clean up old classes
             document.querySelectorAll('.wt-spotlight').forEach(el => el.classList.remove('wt-spotlight', 'wt-spotlight-pulse'));
             document.querySelectorAll('.wt-parent-override').forEach(el => el.classList.remove('wt-parent-override'));
 
             if (targetId) {
                 const target = document.getElementById(targetId);
                 if (target) {
-                    // Add spotlight to the button
                     target.classList.add('wt-spotlight', 'wt-spotlight-pulse');
-                    
-                    // Dynamically elevate all parent containers so the button is guaranteed clickable
                     let current = target.parentElement;
                     while(current && current.tagName !== 'BODY') {
                         const style = window.getComputedStyle(current);
-                        if (style.zIndex !== 'auto' && style.zIndex !== '') {
-                            current.classList.add('wt-parent-override');
-                        }
+                        if (style.zIndex !== 'auto' && style.zIndex !== '') current.classList.add('wt-parent-override');
                         current = current.parentElement;
                     }
 
-                    // Dynamically position the tooltip safely away from the button
-                    const rect = target.getBoundingClientRect();
+                    // Strict Tooltip Positioning
                     tooltip.style.display = 'flex';
-                    if (rect.top < window.innerHeight / 2) {
-                        tooltip.style.top = 'auto';
-                        tooltip.style.bottom = '15%'; 
+                    if (positionHint === 'top') {
+                        tooltip.style.bottom = 'auto'; tooltip.style.top = '5%';
+                    } else if (positionHint === 'bottom') {
+                        tooltip.style.top = 'auto'; tooltip.style.bottom = '5%';
+                    } else if (positionHint === 'extreme-bottom') {
+                        tooltip.style.top = 'auto'; tooltip.style.bottom = '2%';
                     } else {
-                        tooltip.style.bottom = 'auto';
-                        tooltip.style.top = '15%'; 
+                        const rect = target.getBoundingClientRect();
+                        if (rect.top < window.innerHeight / 2) { tooltip.style.top = 'auto'; tooltip.style.bottom = '10%'; } 
+                        else { tooltip.style.bottom = 'auto'; tooltip.style.top = '10%'; }
                     }
                 }
             } else {
-                tooltip.style.display = 'flex';
-                tooltip.style.bottom = 'auto';
-                tooltip.style.top = '40%';
+                tooltip.style.display = 'flex'; tooltip.style.bottom = 'auto'; tooltip.style.top = '40%';
             }
         }
 
@@ -353,9 +354,7 @@
             document.getElementById('wtTooltip').style.display = 'none';
             if (app.wtStep < walkthroughSteps.length) {
                 setTimeout(() => { walkthroughSteps[app.wtStep].trigger(); }, 300);
-            } else {
-                endWalkthrough();
-            }
+            } else { endWalkthrough(); }
         }
 
         function endWalkthrough() {
@@ -368,14 +367,12 @@
 
         function startWalkthrough() {
             if (localStorage.getItem('demo_config')) {
-                app.cart = [];
-                updateCartBadges();
-                app.wtStep = 0;
+                app.cart = []; updateCartBadges(); app.wtStep = 0;
                 setTimeout(() => { walkthroughSteps[0].trigger(); }, 500);
             }
         }
 
-        // STANDARD UI FUNCTIONS (With Native Walkthrough Triggers Embedded)
+        // UI FUNCTIONS
         function switchView(view) {
             if(app.wtActive && view !== 'menu' && view !== 'tracker') return; 
             
@@ -387,16 +384,18 @@
             if (view === 'menu') { 
                 document.getElementById('menuView').style.display = 'block'; 
                 renderMenu(); 
-                if(app.wtActive && app.wtStep === 1) wtNextStep(); // Trigger Guide Next
+                if(app.wtActive && app.wtStep === 1) wtNextStep(); 
             }
-            if (view === 'tracker') { document.getElementById('trackerView').style.display = 'block'; renderTracker(); }
+            if (view === 'tracker') { 
+                document.getElementById('trackerView').style.display = 'block'; 
+                renderTracker(); 
+            }
         }
 
         function renderMenu() {
             const container = document.getElementById('menuContainer');
             const highlights = document.getElementById('popularHighlightsContainer');
-            if (!container) return;
-            if (app.menu.length === 0) return;
+            if (!container || app.menu.length === 0) return;
 
             if (highlights) {
                 const labels = ["TOP ITEM", "POPULAR", "FAVORITE"];
@@ -413,7 +412,9 @@
                 <div>
                     <h3 class="font-bold mb-3 text-sm theme-text">${cat}</h3>
                     <div class="space-y-3">
-                        ${app.menu.filter(i => i.category === cat).map(item => `
+                        ${app.menu.filter(i => i.category === cat).map(item => {
+                            // Check if owner marked it sold out in the backend (using persistent logic later)
+                            return `
                             <div class="bg-zinc-900 border border-zinc-800 p-4 rounded-xl flex justify-between items-center">
                                 <div>
                                     <h4 class="font-bold text-sm">${item.name}</h4>
@@ -423,7 +424,7 @@
                                 </div>
                                 <button onclick="openItemModal(${item.id})" class="btn-add-item text-white px-3 py-1.5 rounded-lg text-xs font-semibold h-8 min-w-[55px] shadow theme-bg">Add +</button>
                             </div>
-                        `).join('')}
+                        `}).join('')}
                     </div>
                 </div>
             `).join('');
@@ -445,28 +446,24 @@
             const meatSec = document.getElementById('itemModalMeatSection');
             const drinkSec = document.getElementById('itemModalDrinkSection');
 
-            meatSec.classList.add('hidden');
-            drinkSec.classList.add('hidden');
+            meatSec.classList.add('hidden'); drinkSec.classList.add('hidden');
 
             if (item.meats) {
                 meatSec.classList.remove('hidden');
                 const meatOptions = item.meats.split(',').map(m => m.trim());
                 document.getElementById('itemMeatSelect').innerHTML = meatOptions.map((m, index) => {
                     let isUpcharge = '';
-                    if (index > 0 && item.premiumUpcharge) {
-                        isUpcharge = ` (+$${item.premiumUpcharge.toFixed(2)})`;
-                    }
+                    if (index > 0 && item.premiumUpcharge) isUpcharge = ` (+$${item.premiumUpcharge.toFixed(2)})`;
                     return `<option value="${m}">${m}${isUpcharge}</option>`;
                 }).join('');
             }
-
             if (item.options) {
                 drinkSec.classList.remove('hidden');
                 document.getElementById('itemDrinkSelect').innerHTML = item.options.map(o => `<option value="${o}">${o}</option>`).join('');
             }
 
             document.getElementById('itemModal').style.display = 'flex';
-            if(app.wtActive && app.wtStep === 2) wtNextStep(); // Trigger Guide Next
+            if(app.wtActive && app.wtStep === 2) wtNextStep(); 
         }
 
         function closeItemModal() {
@@ -487,19 +484,16 @@
 
             if (currentModalItem.meats) {
                 const meatSelect = document.getElementById('itemMeatSelect');
-                if (meatSelect.selectedIndex > 0 && currentModalItem.premiumUpcharge) {
-                    itemUpcharge += currentModalItem.premiumUpcharge;
-                }
+                if (meatSelect.selectedIndex > 0 && currentModalItem.premiumUpcharge) itemUpcharge += currentModalItem.premiumUpcharge;
             }
 
             const effectivePrice = currentModalItem.price + itemUpcharge;
             const prepMins = parseInt(currentModalItem.prep) || 3; 
 
             app.cart.push({ name: itemName, price: effectivePrice, quantity: currentModalQtyVal, prep: prepMins });
-            
             document.getElementById('itemModal').style.display = 'none';
             updateCartBadges();
-            if(app.wtActive && app.wtStep === 3) wtNextStep(); // Trigger Guide Next
+            if(app.wtActive && app.wtStep === 3) wtNextStep(); 
         }
 
         function updateCartBadges() {
@@ -512,8 +506,11 @@
         function openCartModal() {
             if (app.cart.length === 0 && !app.wtActive) return;
             
+            const rushMode = parseInt(localStorage.getItem('foodtruck_rush_mode')) || 0;
             const itemsWaitTime = app.cart.reduce((sum, item) => sum + (item.prep * item.quantity), 0);
-            document.getElementById('cartEstimatedWait').innerText = `~${itemsWaitTime} mins`;
+            const totalWaitTime = itemsWaitTime + rushMode;
+            
+            document.getElementById('cartEstimatedWait').innerText = `~${totalWaitTime} mins`;
 
             document.getElementById('cartItemsList').innerHTML = app.cart.map((item) => `
                 <div class="flex justify-between items-center bg-zinc-950 p-3 rounded-xl border border-zinc-800 text-sm">
@@ -526,7 +523,7 @@
             `).join('');
             
             document.getElementById('cartModal').style.display = 'flex';
-            if(app.wtActive && app.wtStep === 4) wtNextStep(); // Trigger Guide Next
+            if(app.wtActive && app.wtStep === 4) wtNextStep(); 
         }
 
         function closeCartModal() { 
@@ -540,9 +537,7 @@
             const summary = app.cart.map(i => `${i.quantity}x ${i.name}`).join(', ');
             const total = app.cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
             
-            const newOrder = {
-                id: ticketId, name: nameInput, items: summary, status: "Preparing", total, timestamp: Date.now()
-            };
+            const newOrder = { id: ticketId, name: nameInput, items: summary, status: "Preparing", total, timestamp: Date.now() };
 
             let sharedOrders = JSON.parse(localStorage.getItem('foodtruck_orders')) || [];
             sharedOrders.unshift(newOrder);
@@ -556,14 +551,17 @@
             document.getElementById('successTicketNum').innerText = `#${newOrder.id}`;
             document.getElementById('successModal').style.display = 'flex';
             
+            // Loop feature: Enable the button so post-demo clients can easily bounce back
+            document.getElementById('btn-route-owner').classList.remove('hidden');
+            
             localStorage.setItem('wt_incoming_demo', 'true');
-            if(app.wtActive && app.wtStep === 5) wtNextStep(); // Trigger Guide Next
+            if(app.wtActive && app.wtStep === 5) wtNextStep(); 
         }
 
         function closeSuccessModal() {
             document.getElementById('successModal').style.display = 'none';
             switchView('tracker');
-            if(app.wtActive && app.wtStep === 6) wtNextStep(); // Trigger Guide Next
+            if(app.wtActive && app.wtStep === 6) wtNextStep(); 
         }
 
         function renderTracker() {
@@ -580,10 +578,7 @@
         }
 
         window.onload = () => {
-            if (applyDemoConfig()) {
-                document.getElementById('activeLocationDisplay').innerText = "Downtown Main Street (Live View)";
-                startWalkthrough();
-            }
+            if (applyDemoConfig()) startWalkthrough();
         };
     </script>
 </body>
