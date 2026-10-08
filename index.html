@@ -2,539 +2,347 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>El Taco De Ojo</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>System Provisioning</title>
+    <style>
+        /* Sleek Neutral / Dark Mode Aesthetics */
+        :root {
+            --bg-color: #0f1115; /* Deep Charcoal */
+            --surface-color: #1a1d24; /* Elevated Slate */
+            --text-primary: #f8f9fa;
+            --text-secondary: #8b92a5;
+            --accent-color: #ffffff;
+            --border-color: #2d313a;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            overflow: hidden; /* Prevents scrolling, forces focus */
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Progress Bar */
+        #progress-container {
+            width: 100%;
+            height: 4px;
+            background: var(--surface-color);
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+        }
+        #progress-bar {
+            height: 100%;
+            width: 25%;
+            background: var(--accent-color);
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Slide Container */
+        #slides-container {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(50px);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .slide.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(0);
+        }
+
+        .slide.previous {
+            transform: translateX(-50px);
+        }
+
+        /* Typography & Inputs */
+        h1 { font-size: 1.75rem; font-weight: 500; margin-bottom: 0.5rem; text-align: center; }
+        p.subtitle { color: var(--text-secondary); margin-bottom: 2rem; text-align: center; }
+
+        input[type="text"], input[type="number"] {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid var(--border-color);
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            padding: 0.5rem;
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+        
+        input[type="text"]:focus, input[type="number"]:focus {
+            border-bottom-color: var(--accent-color);
+        }
+        
+        /* Mobile zoom prevention */
+        input { font-size: 16px !important; }
+
+        /* Color Swatches (Neutral/Modern) */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            width: 100%;
+            max-width: 400px;
+        }
+        .swatch {
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            text-align: center;
+            font-weight: 500;
+            transition: transform 0.2s;
+        }
+        .swatch:hover { transform: translateY(-2px); }
+
+        /* Menu Builders */
+        .menu-presets {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 2rem;
+        }
+        .preset-btn {
+            background: var(--surface-color);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+        }
+        .preset-btn:hover { border-color: var(--text-secondary); }
+
+        .custom-menu-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            width: 100%;
+            max-width: 400px;
+        }
+        .custom-menu-row input[type="text"] { flex: 2; font-size: 1.2rem; text-align: left; }
+        .custom-menu-row input[type="number"] { flex: 1; font-size: 1.2rem; text-align: right; }
+
+        .btn-primary {
+            background: var(--text-primary);
+            color: var(--bg-color);
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 400px;
+            margin-top: 1rem;
+        }
+
+        /* Loader */
+        .loader {
+            width: 40px; height: 40px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1.5rem;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    </style>
 </head>
-<body class="bg-zinc-950 text-zinc-100 font-sans min-h-screen pb-20 flex flex-col justify-between">
-    <div class="max-w-md mx-auto w-full flex-grow">
-        <!-- Landing View -->
-        <div id="landingView" class="p-6 flex flex-col items-center justify-center min-h-[90vh] text-center">
-            <div class="w-24 h-24 rounded-full border-2 border-pink-500 p-1 mb-4 flex items-center justify-center shadow-lg shadow-pink-500/10">
-                <span class="text-4xl">🌮</span>
-            </div>
-            <h1 class="text-3xl font-serif font-bold italic tracking-wide mb-1">El Taco De Ojo</h1>
-            <p class="text-zinc-400 text-sm mb-3">Authentic Mexican Food</p>
-            
-            <div class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 mb-4 text-left shadow-md">
-                <div class="flex justify-between items-center mb-1">
-                    <label class="text-[11px] text-zinc-400 font-medium">📍 Active Truck Location (Click to Map):</label>
-                </div>
-                <div id="activeLocationDisplay" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2.5 text-xs text-zinc-300 font-medium"></div>
-            </div>
+<body>
 
-            <div id="storeStatusBadge" class="bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-4 py-2 text-xs mb-6 text-emerald-400 flex items-center gap-2 w-full justify-center">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span id="storeStatusText">Open Now • Until 6:00 PM</span>
-            </div>
+    <div id="progress-container"><div id="progress-bar"></div></div>
 
-            <div id="waitTimeWarningBanner" class="hidden w-full bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 mb-6 text-xs text-amber-400 flex items-center gap-2 justify-center">
-                <span>⚠</span> <span id="waitTimeWarningText">Kitchen is currently running a slightly higher wait time.</span>
-            </div>
+    <div id="slides-container">
+        <!-- Slide 1: Identity -->
+        <div class="slide active" id="slide-1">
+            <h1>What is your food truck's name?</h1>
+            <p class="subtitle">Press Enter to continue</p>
+            <input type="text" id="truck-name" placeholder="e.g., Bite Street Tacos" autocomplete="off" autofocus>
+        </div>
 
-            <div class="w-full space-y-3">
-                <button onclick="switchView('menu')" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-semibold py-3.5 rounded-xl transition shadow-lg shadow-pink-600/25">Start Order</button>
-                <button onclick="switchView('tracker')" class="w-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-200 font-medium py-3 rounded-xl transition flex items-center justify-center gap-2 text-sm"><span>📍</span> Track Order Status</button>
-            </div>
-
-            <div class="mt-12 text-center">
-                <a href="https://instagram.com/el_taco_de_ojo_" target="_blank" class="text-xs text-pink-500 hover:text-pink-400 tracking-wider font-medium flex items-center justify-center gap-1.5"><span>📷</span> @el_taco_de_ojo_</a>
+        <!-- Slide 2: Aesthetics -->
+        <div class="slide" id="slide-2">
+            <h1>Select your brand theme.</h1>
+            <p class="subtitle">This dictates your portal's UI.</p>
+            <div class="color-grid">
+                <div class="swatch" style="background:#20232a; color:#fff;" onclick="selectTheme('Obsidian Black', '#20232a')">Obsidian Black</div>
+                <div class="swatch" style="background:#4a5568; color:#fff;" onclick="selectTheme('Slate Grey', '#4a5568')">Slate Grey</div>
+                <div class="swatch" style="background:#78866b; color:#fff;" onclick="selectTheme('Sage Matte', '#78866b')">Sage Matte</div>
+                <div class="swatch" style="background:#c07c65; color:#fff;" onclick="selectTheme('Terracotta', '#c07c65')">Terracotta</div>
             </div>
         </div>
 
-        <!-- Menu View -->
-        <div id="menuView" class="p-4 hidden">
-            <div class="flex items-center justify-between mb-4 sticky top-0 bg-zinc-950/90 backdrop-blur py-2 z-10 border-b border-zinc-900">
-                <button onclick="switchView('landing')" class="text-zinc-400 text-sm hover:text-white">← Back</button>
-                <h2 class="font-bold text-lg">Order Menu</h2>
-                <div class="w-10"></div>
-            </div>
+        <!-- Slide 3: The Product -->
+        <div class="slide" id="slide-3">
+            <h1>Add your top 3 sellers.</h1>
+            <p class="subtitle">Choose a preset or type your own.</p>
             
-            <div class="bg-gradient-to-r from-pink-950/40 to-amber-950/40 border border-pink-500/30 rounded-xl p-3 mb-5 text-xs">
-                <div class="font-bold text-pink-400 mb-1 flex items-center gap-1"><span>🔥</span> Popular Item Highlights</div>
-                <div id="popularHighlightsContainer" class="grid grid-cols-3 gap-2 text-center mt-2"></div>
-            </div>
-
-            <div id="menuContainer" class="space-y-6"></div>
-            
-            <div class="fixed bottom-4 left-4 right-4 max-w-md mx-auto">
-                <button onclick="openCartModal()" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-semibold py-3 rounded-xl shadow-xl flex justify-between px-5 items-center">
-                    <span id="cartCountBadge" class="bg-pink-700 px-2 py-0.5 rounded-md text-xs font-bold">0 items</span>
-                    <span>View Cart</span>
-                    <span id="cartTotalBadge">$0.00</span>
+            <div class="menu-presets">
+                <button class="preset-btn" onclick="selectPreset('mexican')">
+                    <span>🌮 Mexican Street Food</span><span style="color:var(--text-secondary)">Use Preset</span>
+                </button>
+                <button class="preset-btn" onclick="selectPreset('american')">
+                    <span>🍔 Smashburger Classic</span><span style="color:var(--text-secondary)">Use Preset</span>
+                </button>
+                <button class="preset-btn" onclick="selectPreset('asian')">
+                    <span>🥡 Asian Fusion</span><span style="color:var(--text-secondary)">Use Preset</span>
                 </button>
             </div>
-        </div>
 
-        <!-- Tracker View -->
-        <div id="trackerView" class="p-4 hidden">
-            <div class="flex items-center justify-between mb-4 border-b border-zinc-900 pb-2">
-                <button onclick="switchView('landing')" class="text-zinc-400 text-sm hover:text-white">← Back</button>
-                <h2 class="font-bold text-lg">Order Tracker</h2>
-                <div class="w-10"></div>
+            <div style="width:100%; max-width:400px; text-align:center; margin-bottom:1rem; color:var(--text-secondary); text-transform:uppercase; font-size:0.8rem; letter-spacing:1px;">Or Custom Entry</div>
+
+            <div class="custom-menu-row">
+                <input type="text" class="custom-name" placeholder="Item 1">
+                <input type="number" class="custom-price" placeholder="$0.00" step="0.50">
             </div>
-            <div class="space-y-3" id="activeOrdersList"></div>
-        </div>
-    </div>
-
-    <!-- Item Customization & Quantity Modal -->
-    <div id="itemModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-zinc-900 border border-zinc-800 w-full max-w-sm rounded-2xl p-5 space-y-4">
-            <div class="flex justify-between items-center"><h3 id="itemModalTitle" class="font-bold text-lg text-pink-400">Add to Order</h3><button onclick="closeItemModal()" class="text-zinc-400 hover:text-white text-sm">✕</button></div>
+            <div class="custom-menu-row">
+                <input type="text" class="custom-name" placeholder="Item 2">
+                <input type="number" class="custom-price" placeholder="$0.00" step="0.50">
+            </div>
+            <div class="custom-menu-row">
+                <input type="text" class="custom-name" placeholder="Item 3">
+                <input type="number" class="custom-price" placeholder="$0.00" step="0.50">
+            </div>
             
-            <div id="itemModalMeatSection" class="hidden">
-                <label class="block text-xs text-zinc-400 mb-1 font-medium">Select Meat Type</label>
-                <select id="itemMeatSelect" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-200"></select>
-            </div>
-
-            <!-- Tortilla Substitution Section -->
-            <div id="itemModalTortillaSection" class="hidden">
-                <label class="block text-xs text-zinc-400 mb-1 font-medium">Tortilla Option</label>
-                <select id="itemTortillaSelect" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-200">
-                    <option value="">Standard (Corn)</option>
-                    <option value="Tortilla de Harina">Tortilla de Harina (+$1.00)</option>
-                </select>
-            </div>
-
-            <div id="itemModalDrinkSection" class="hidden">
-                <label class="block text-xs text-zinc-400 mb-1 font-medium">Select Flavor Option</label>
-                <select id="itemDrinkSelect" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-200"></select>
-            </div>
-
-            <div>
-                <label class="block text-xs text-zinc-400 mb-1 font-medium">Quantity</label>
-                <div class="flex items-center gap-3">
-                    <button onclick="adjustModalQty(-1)" class="w-10 h-10 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-base font-bold flex items-center justify-center">-</button>
-                    <span id="itemModalQty" class="text-lg font-mono font-bold flex-1 text-center">1</span>
-                    <button onclick="adjustModalQty(1)" class="w-10 h-10 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-base font-bold flex items-center justify-center">+</button>
-                </div>
-            </div>
-            <button onclick="confirmAddToCart()" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-semibold py-3 rounded-xl transition shadow-lg shadow-pink-600/20">Confirm & Add to Cart</button>
+            <button class="btn-primary" onclick="submitCustomMenu()">Build My System</button>
         </div>
-    </div>
 
-    <!-- Cart Modal -->
-    <div id="cartModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-zinc-900 border border-zinc-800 w-full max-w-sm rounded-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center border-b border-zinc-800 pb-3"><h3 class="font-bold text-lg">Your Order Cart</h3><button onclick="closeCartModal()" class="text-zinc-400 hover:text-white text-sm">✕</button></div>
-            
-            <div id="cartWaitTimeContainer" class="bg-amber-500/10 border border-amber-500/30 rounded-lg p-2.5 flex items-center justify-between text-xs">
-                <span class="text-amber-400 font-medium">⏱️ Estimated Kitchen Wait:</span>
-                <span id="cartEstimatedWait" class="font-bold text-amber-400 font-mono">0 mins</span>
-            </div>
-
-            <div id="cartItemsList" class="space-y-3"></div>
-            
-            <div class="space-y-3 pt-2 border-t border-zinc-800">
-                <div><label class="block text-xs text-zinc-400 mb-1">Your Name (Optional)</label><input type="text" id="customerName" placeholder="Enter name or leave blank for Guest" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-200"></div>
-                <div><label class="block text-xs text-zinc-400 mb-1">Special Requests / Notes</label><textarea id="customerOrderNotes" placeholder="Notes..." class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-200 h-20 resize-none"></textarea></div>
-            </div>
-            <button onclick="submitOrder()" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-semibold py-3 rounded-xl transition">Place Order</button>
-        </div>
-    </div>
-
-    <!-- Success Checkout Modal -->
-    <div id="successModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-zinc-900 border border-zinc-800 w-full max-w-sm rounded-2xl p-6 text-center space-y-4">
-            <div class="w-16 h-16 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full flex items-center justify-center mx-auto text-2xl">✓</div>
-            <h3 class="font-bold text-lg text-zinc-100">Order Placed Successfully!</h3>
-            <div class="bg-zinc-950 p-4 rounded-xl border border-zinc-800 space-y-1">
-                <div class="text-xs text-zinc-400">Assigned Ticket Number:</div>
-                <div id="successTicketNum" class="text-2xl font-mono font-bold text-pink-500">#000</div>
-                <div id="successCustomerName" class="text-xs text-zinc-300 font-medium pt-1"></div>
-            </div>
-            <button onclick="closeSuccessModal()" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-semibold py-2.5 rounded-xl text-xs transition">View in Tracker</button>
+        <!-- Slide 4: Processing Handoff -->
+        <div class="slide" id="slide-4">
+            <div class="loader"></div>
+            <h1 id="loading-text">Compiling Kitchen Display...</h1>
         </div>
     </div>
 
     <script>
-        const app = {
-            get cart() { return JSON.parse(localStorage.getItem('foodtruck_cart')) || []; },
-            set cart(val) { localStorage.setItem('foodtruck_cart', JSON.stringify(val)); },
-            get locations() { return JSON.parse(localStorage.getItem('foodtruck_locations')) || [
-                { id: 1, name: "Trunk or Treat", address: "3541 W Thunderbird Rd, Phoenix, AZ 85053" },
-                { id: 2, name: "Laguna @Arrowhead", address: "20251 N 75th ave Glendale, AZ" },
-                { id: 3, name: "Cobblestone", address: "15449 N 25th Ave, Phoenix, AZ" },
-                { id: 4, name: "Zoneluxe", address: "9450 W Cabela Dr, Glendale, AZ" },
-                { id: 5, name: "Olive Tree", address: "6201 W Olive Ave, Glendale, AZ" },
-                { id: 6, name: "Portola North", address: "2700 W Sahuaro Dr, Phoenix, AZ" },
-                { id: 7, name: "Peoria Lot", address: "8815 Peoria Ave #11, Peoria, AZ 85345" },
-                { id: 8, name: "Manzanita Elementary", address: "8430 N 39TH AVE, Phoenix, AZ" },
-                { id: 9, name: "7th St Lot", address: "20425 N 7TH ST PHOENIX, AZ 85024" }
-            ]; },
-            get activeLocationId() { return parseInt(localStorage.getItem('foodtruck_active_loc')) || 1; },
-            get isOpen() { return JSON.parse(localStorage.getItem('foodtruck_isopen')) ?? true; },
-            get closingTime() { return localStorage.getItem('foodtruck_closingtime') || "6:00 PM"; },
-            get orders() { return JSON.parse(localStorage.getItem('foodtruck_orders')) || []; },
-            set orders(val) { localStorage.setItem('foodtruck_orders', JSON.stringify(val)); },
-            get extraWait() { return localStorage.getItem('foodtruck_extrawait') || ''; },
-            // CHANGED KEY TO foodtruck_menu_v2 to bypass the browser cache and load the new plain quesadilla
-            get menu() { return JSON.parse(localStorage.getItem('foodtruck_menu_v2')) || [
-                { id: 1, category: "Tacos & Specialties", name: "Taco", price: 3.00, markdownPrice: null, desc: "meat, cilantro, onion", prep: "2 mins", soldOut: false, hasMeat: true, meats: "Asada, Pastor, Cabeza, Birria, Pollo, Camaron", camaronUpcharge: 0.50, hasFlourTortillaOption: true },
-                { id: 2, category: "Tacos & Specialties", name: "Vampiro", price: 5.00, markdownPrice: null, desc: "meat, cheese, cilantro and onion", prep: "3 mins", soldOut: false, hasMeat: true, meats: "Asada, Pastor, Cabeza, Birria, Pollo, Camaron", camaronUpcharge: -0.50 },
-                { id: 3, category: "Tacos & Specialties", name: "Quesabirria Consome", price: 5.50, markdownPrice: null, desc: "meat, cheese, cilantro, onion and its broth", prep: "3 mins", soldOut: false, hasMeat: true, meats: "Birria", camaronUpcharge: null, hasFlourTortillaOption: true },
-                { id: 4, category: "Tacos & Specialties", name: "Quesacamaron Consome", price: 6.00, markdownPrice: null, desc: "shrimp, cheese, pico de gallo and it's broth", prep: "4 mins", soldOut: false, hasMeat: true, meats: "Camaron", camaronUpcharge: null, hasFlourTortillaOption: true },
-                { id: 5, category: "Main Entrées", name: "Burrito", price: 12.00, markdownPrice: null, desc: "meat, rice, beans, cabbage, cilantro, onion, guacamole", prep: "5 mins", soldOut: false, hasMeat: true, meats: "Asada, Pastor, Cabeza, Birria, Pollo, Camaron", camaronUpcharge: 0.50 },
-                { id: 6, category: "Main Entrées", name: "Quesadilla", price: 12.00, markdownPrice: null, desc: "meat, cheese *side of pico de gallo & sour cream", prep: "5 mins", soldOut: false, hasMeat: true, meats: "Asada, Pastor, Cabeza, Birria, Pollo, Camaron", camaronUpcharge: 0.50 },
-                { id: 15, category: "Main Entrées", name: "Plain Quesadilla", price: 6.00, markdownPrice: null, desc: "tortilla, cheese", prep: "3 mins", soldOut: false, hasMeat: false },
-                { id: 7, category: "Main Entrées", name: "Torta W/ Fries", price: 15.00, markdownPrice: null, desc: "meat, mayo, beans, chipotle sauce, cabbage, cilantro, onion, tomato, avocado, queso fresco, jalapeños w/ fries", prep: "8 mins", soldOut: false, hasMeat: true, meats: "Asada, Pastor, Cabeza, Birria, Pollo, Camaron", camaronUpcharge: 0.50 },
-                { id: 8, category: "Main Entrées", name: "Carne Asada Fries", price: 15.00, markdownPrice: null, desc: "fries, meat, cheese, chipotle sauce, sour cream, avocado sauce, topped with guacamole", prep: "6 mins", soldOut: false, hasMeat: true, meats: "Asada", camaronUpcharge: null },
-                { id: 9, category: "Main Entrées", name: "Birria Nachos", price: 14.00, markdownPrice: null, desc: "meat, tortilla chips, nacho cheese, pico, jalapeños", prep: "5 mins", soldOut: false, hasMeat: true, meats: "Birria", camaronUpcharge: null },
-                { id: 10, category: "Main Entrées", name: "1/2 Asada Fries & 1/2 Birria Nachos", price: 17.00, markdownPrice: null, desc: "half Carne Asada Fries & half Birria Nachos", prep: "7 mins", soldOut: false, hasMeat: true, meats: "Asada & Birria", camaronUpcharge: null },
-                { id: 11, category: "Beverages", name: "Aguas Frescas (32 oz)", price: 5.00, markdownPrice: null, desc: "Jamaica, Horchata, Limonada de Pepino", isDrink: true, options: ["Jamaica", "Horchata", "Limonada de Pepino"], prep: "1 min", soldOut: false },
-                { id: 12, category: "Beverages", name: "Mexican Cokes", price: 5.00, markdownPrice: null, desc: "", isDrink: true, options: ["Mexican Coke"], prep: "1 min", soldOut: false },
-                { id: 13, category: "Beverages", name: "Jarritos", price: 3.50, markdownPrice: null, desc: "", isDrink: true, options: ["Mandarin", "Tamarind", "Pineapple", "Fruit Punch"], prep: "1 min", soldOut: false },
-                { id: 14, category: "Beverages", name: "Water", price: 1.00, markdownPrice: null, desc: "", isDrink: false, prep: "1 min", soldOut: false }
-            ]; },
-            set menu(val) { localStorage.setItem('foodtruck_menu_v2', JSON.stringify(val)); }
+        // Central Data Object
+        const systemData = {
+            truckName: "",
+            themeName: "",
+            themeColor: "",
+            menu: []
         };
 
-        // Real-Time Sync Listener: Updates Customer view instantly when Owner edits settings in another tab
-        window.addEventListener('storage', function(e) {
-            if (e.key && e.key.startsWith('foodtruck_')) {
-                initApp();
-                if (document.getElementById('menuView').style.display === 'block') renderMenu();
-                if (document.getElementById('trackerView').style.display === 'block') renderTracker();
+        const presets = {
+            mexican: [
+                { name: "Al Pastor Taco", price: "4.50" },
+                { name: "Carne Asada Burrito", price: "12.00" },
+                { name: "Street Corn (Esquites)", price: "5.00" }
+            ],
+            american: [
+                { name: "Double Smashburger", price: "11.00" },
+                { name: "Truffle Parm Fries", price: "6.50" },
+                { name: "Vanilla Bean Shake", price: "5.00" }
+            ],
+            asian: [
+                { name: "Pork Belly Bao (2)", price: "9.00" },
+                { name: "Spicy Peanut Noodles", price: "13.00" },
+                { name: "Thai Iced Tea", price: "4.50" }
+            ]
+        };
+
+        let currentSlide = 1;
+
+        function goToSlide(step) {
+            document.getElementById(`slide-${currentSlide}`).classList.remove('active');
+            document.getElementById(`slide-${currentSlide}`).classList.add('previous');
+            currentSlide = step;
+            document.getElementById(`slide-${currentSlide}`).classList.add('active');
+            document.getElementById('progress-bar').style.width = `${(step / 4) * 100}%`;
+        }
+
+        // Slide 1 Logic
+        document.getElementById('truck-name').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                systemData.truckName = this.value.trim() || "My Food Truck";
+                this.blur(); // dismiss mobile keyboard
+                goToSlide(2);
             }
         });
 
-        function initApp() { 
-            updateLandingUI();
-            updateCartBadges();
-            renderPopularHighlights();
+        // Slide 2 Logic
+        function selectTheme(name, hex) {
+            systemData.themeName = name;
+            systemData.themeColor = hex;
+            goToSlide(3);
         }
 
-        function updateLandingUI() {
-            const loc = app.locations.find(l => l.id === app.activeLocationId) || app.locations[0];
-            const locDisplay = document.getElementById('activeLocationDisplay');
-            if (locDisplay && loc) {
-                const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc.name + ' ' + loc.address)}`;
-                locDisplay.innerHTML = `<a href="${mapsUrl}" target="_blank" class="text-pink-400 hover:underline flex flex-col gap-0.5"><strong>${loc.name}</strong><span class="text-zinc-400 text-[11px]">${loc.address} ↗</span></a>`;
-            }
+        // Slide 3 Logic - Presets
+        function selectPreset(type) {
+            systemData.menu = presets[type];
+            finalizeSystem();
+        }
 
-            const statusBadge = document.getElementById('storeStatusBadge');
-            const statusText = document.getElementById('storeStatusText');
-            const closing = app.closingTime;
-            if (statusBadge && statusText) {
-                if (app.isOpen) {
-                    statusBadge.className = "bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-4 py-2 text-xs mb-6 text-emerald-400 flex items-center gap-2 w-full justify-center";
-                    statusText.innerText = `Open Now • Until ${closing}`;
-                } else {
-                    statusBadge.className = "bg-rose-500/10 border border-rose-500/30 rounded-xl px-4 py-2 text-xs mb-6 text-rose-400 flex items-center gap-2 w-full justify-center";
-                    statusText.innerText = "Closed Right Now";
+        // Slide 3 Logic - Custom
+        function submitCustomMenu() {
+            const names = document.querySelectorAll('.custom-name');
+            const prices = document.querySelectorAll('.custom-price');
+            
+            for(let i=0; i<3; i++) {
+                if(names[i].value.trim() !== '') {
+                    systemData.menu.push({
+                        name: names[i].value.trim(),
+                        price: prices[i].value || "0.00"
+                    });
                 }
             }
 
-            const waitBanner = document.getElementById('waitTimeWarningBanner');
-            const waitText = document.getElementById('waitTimeWarningText');
-            const extra = app.extraWait;
-            if (waitBanner && waitText) {
-                if (extra) {
-                    waitBanner.classList.remove('hidden');
-                    waitText.innerText = extra === '15' ? "Kitchen is slightly busy (+15m wait time)." : "Kitchen is very busy (+30m wait time).";
-                } else {
-                    waitBanner.classList.add('hidden');
-                }
-            }
-        }
-
-        function switchView(view) {
-            ['landingView', 'menuView', 'trackerView'].forEach(v => {
-                const el = document.getElementById(v);
-                if (el) el.style.display = 'none';
-            });
-            if (view === 'landing') document.getElementById('landingView').style.display = 'flex';
-            if (view === 'menu') { document.getElementById('menuView').style.display = 'block'; renderMenu(); }
-            if (view === 'tracker') { document.getElementById('trackerView').style.display = 'block'; renderTracker(); }
-        }
-
-        function renderPopularHighlights() {
-            const container = document.getElementById('popularHighlightsContainer');
-            if (!container) return;
-            const defaults = ["Quesabirria Consome", "Carne Asada Fries", "Taco"];
-            container.innerHTML = defaults.map((name, idx) => {
-                const labels = ["TOP ITEM", "POPULAR", "FAVORITE"];
-                const itemObj = app.menu.find(m => m.name.toLowerCase() === name.toLowerCase()) || app.menu[0];
-                return `<div onclick="openItemModal(${itemObj.id})" class="bg-zinc-950/60 p-2 rounded-lg border border-zinc-800 cursor-pointer hover:border-pink-500 transition"><span class="text-[9px] text-zinc-400 block font-semibold">${labels[idx]}</span><span class="font-bold text-zinc-200 text-[11px] truncate block">${itemObj.name}</span></div>`;
-            }).join('');
-        }
-
-        function renderMenu() {
-            const container = document.getElementById('menuContainer');
-            if (!container) return;
-            const categories = [...new Set(app.menu.map(i => i.category))];
-            container.innerHTML = categories.map(cat => `
-                <div>
-                    <h3 class="font-bold text-pink-500 mb-3 text-sm">🔥 ${cat}</h3>
-                    <div class="space-y-3">
-                        ${app.menu.filter(i => i.category === cat).map(item => {
-                            const hasSale = item.markdownPrice !== null && item.markdownPrice !== undefined && item.markdownPrice < item.price;
-                            const effectivePrice = hasSale ? item.markdownPrice : item.price;
-                            return `
-                                <div class="bg-zinc-900 border border-zinc-800 p-4 rounded-xl flex justify-between items-center ${item.soldOut ? 'opacity-50' : ''}">
-                                    <div>
-                                        <h4 class="font-bold text-sm flex items-center gap-2">
-                                            ${item.name}${item.soldOut ? '<span class="text-[10px] bg-rose-500/20 text-rose-400 px-1.5 py-0.5 rounded font-mono">SOLD OUT</span>' : ''}
-                                            ${hasSale ? '<span class="text-[10px] bg-pink-500/20 text-pink-400 px-1.5 py-0.5 rounded font-mono font-bold">SALE</span>' : ''}
-                                        </h4>
-                                        <p class="text-xs text-zinc-400 mt-0.5">${item.desc}</p>
-                                        <div class="flex items-center gap-3 mt-2">
-                                            ${hasSale ? `<span class="text-sm font-bold text-pink-400">$${effectivePrice.toFixed(2)}</span><span class="text-xs text-zinc-500 line-through">$${item.price.toFixed(2)}</span>` : `<span class="text-sm font-semibold text-pink-500">$${item.price.toFixed(2)}</span>`}
-                                            <span class="text-[10px] text-zinc-500">(~${item.prep})</span>
-                                        </div>
-                                    </div>
-                                    <button ${item.soldOut ? 'disabled' : ''} onclick="openItemModal(${item.id})" class="bg-pink-600 hover:bg-pink-500 disabled:bg-zinc-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold h-8 min-w-[55px] flex items-center justify-center shadow">Add +</button>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                </div>
-            `).join('');
-            updateCartBadges();
-            renderPopularHighlights();
-        }
-
-        let currentModalItem = null;
-        let currentModalQtyVal = 1;
-
-        function openItemModal(id) {
-            const item = app.menu.find(m => m.id === id);
-            if (item.soldOut) return;
-            currentModalItem = item;
-            currentModalQtyVal = 1;
-            document.getElementById('itemModalQty').innerText = currentModalQtyVal;
-            document.getElementById('itemModalTitle').innerText = `Add ${item.name}`;
-
-            const meatSec = document.getElementById('itemModalMeatSection');
-            const tortillaSec = document.getElementById('itemModalTortillaSection');
-            const drinkSec = document.getElementById('itemModalDrinkSection');
-
-            // Dynamically build meat dropdown
-            if (item.hasMeat && item.meats) {
-                meatSec.classList.remove('hidden');
-                const meatOptions = item.meats.split(',').map(m => m.trim());
-                document.getElementById('itemMeatSelect').innerHTML = meatOptions.map(m => {
-                    let isUpcharge = '';
-                    if (m.toLowerCase() === 'camaron' && item.camaronUpcharge !== null && item.camaronUpcharge !== undefined) {
-                        if (item.camaronUpcharge > 0) isUpcharge = ` (+$${item.camaronUpcharge.toFixed(2)})`;
-                        else if (item.camaronUpcharge < 0) isUpcharge = ` (-$${Math.abs(item.camaronUpcharge).toFixed(2)})`;
-                    }
-                    return `<option value="${m}">${m}${isUpcharge}</option>`;
-                }).join('');
-            } else {
-                meatSec.classList.add('hidden');
-            }
-
-            // Show tortilla option if applicable
-            if (item.hasFlourTortillaOption) {
-                tortillaSec.classList.remove('hidden');
-                document.getElementById('itemTortillaSelect').value = '';
-            } else {
-                tortillaSec.classList.add('hidden');
-            }
-
-            // Build drink dropdown
-            if (item.isDrink && item.options) {
-                drinkSec.classList.remove('hidden');
-                document.getElementById('itemDrinkSelect').innerHTML = item.options.map(o => `<option value="${o}">${o}</option>`).join('');
-            } else {
-                drinkSec.classList.add('hidden');
-            }
-
-            document.getElementById('itemModal').style.display = 'flex';
-        }
-
-        function closeItemModal() {
-            document.getElementById('itemModal').style.display = 'none';
-            currentModalItem = null;
-        }
-
-        function adjustModalQty(delta) {
-            currentModalQtyVal += delta;
-            if (currentModalQtyVal < 1) currentModalQtyVal = 1;
-            document.getElementById('itemModalQty').innerText = currentModalQtyVal;
-        }
-
-        function confirmAddToCart() {
-            if (!currentModalItem) return;
-            let itemName = currentModalItem.name;
-            let extraDetails = [];
-            let itemUpcharge = 0;
-
-            if (currentModalItem.hasMeat && currentModalItem.meats) {
-                const meat = document.getElementById('itemMeatSelect').value;
-                extraDetails.push(meat);
-                if (meat.toLowerCase() === 'camaron' && currentModalItem.camaronUpcharge) {
-                    itemUpcharge += currentModalItem.camaronUpcharge;
-                }
-            }
-
-            if (currentModalItem.hasFlourTortillaOption) {
-                const tortilla = document.getElementById('itemTortillaSelect').value;
-                if (tortilla === 'Tortilla de Harina') {
-                    extraDetails.push('Tortilla de Harina');
-                    itemUpcharge += 1.00;
-                }
-            }
-
-            if (currentModalItem.isDrink && currentModalItem.options) {
-                const flavor = document.getElementById('itemDrinkSelect').value;
-                extraDetails.push(flavor);
-            }
-
-            if (extraDetails.length > 0) {
-                itemName += ` (${extraDetails.join(', ')})`;
-            }
-
-            const basePrice = (currentModalItem.markdownPrice !== null && currentModalItem.markdownPrice !== undefined && currentModalItem.markdownPrice < currentModalItem.price) ? currentModalItem.markdownPrice : currentModalItem.price;
-            const effectivePrice = basePrice + itemUpcharge;
+            // Fallback if they hit submit while empty
+            if(systemData.menu.length === 0) systemData.menu = presets['mexican'];
             
-            // Extract numeric minutes from the "prep" string (e.g. "5 mins" -> 5)
-            const prepMins = parseInt(currentModalItem.prep) || 0;
-
-            let cart = app.cart;
-            const existing = cart.find(c => c.name === itemName);
-            if (existing) {
-                existing.quantity += currentModalQtyVal;
-            } else {
-                cart.push({ id: currentModalItem.id, name: itemName, price: effectivePrice, quantity: currentModalQtyVal, prep: prepMins });
-            }
-            app.cart = cart;
-            closeItemModal();
-            updateCartBadges();
+            finalizeSystem();
         }
 
-        function updateCartBadges() {
-            const cart = app.cart;
-            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            const countBadge = document.getElementById('cartCountBadge');
-            const totalBadge = document.getElementById('cartTotalBadge');
-            if (countBadge) countBadge.innerText = `${count} items`;
-            if (totalBadge) totalBadge.innerText = `$${total.toFixed(2)}`;
-        }
-
-        function openCartModal() {
-            const cart = app.cart;
-            if (cart.length === 0) { alert("Cart is empty!"); return; }
-            renderCartItems();
-            document.getElementById('cartModal').style.display = 'flex';
-        }
-
-        function renderCartItems() {
-            const cart = app.cart;
+        // Final Handoff
+        function finalizeSystem() {
+            goToSlide(4);
             
-            // Calculate dynamic wait time based on cart contents + owner extra wait penalty
-            const itemsWaitTime = cart.reduce((sum, item) => sum + (item.prep * item.quantity), 0);
-            const extraOwnerWait = parseInt(app.extraWait) || 0;
-            const totalEstimatedWait = itemsWaitTime + extraOwnerWait;
+            // Write the payload to browser memory
+            localStorage.setItem('demo_config', JSON.stringify(systemData));
             
-            document.getElementById('cartEstimatedWait').innerText = `~${totalEstimatedWait} mins`;
-
-            document.getElementById('cartItemsList').innerHTML = cart.map((item, idx) => `
-                <div class="flex justify-between items-center bg-zinc-950 p-3 rounded-xl border border-zinc-800 text-sm">
-                    <div>
-                        <div class="font-bold">${item.name}</div>
-                        <div class="text-xs text-pink-500 font-semibold">$${(item.price * item.quantity).toFixed(2)}</div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="adjustCartQuantity(${idx}, -1)" class="w-6 h-6 bg-zinc-800 hover:bg-zinc-700 rounded text-xs font-bold flex items-center justify-center">-</button>
-                        <span class="text-xs font-mono w-4 text-center">${item.quantity}</span>
-                        <button onclick="adjustCartQuantity(${idx}, 1)" class="w-6 h-6 bg-zinc-800 hover:bg-zinc-700 rounded text-xs font-bold flex items-center justify-center">+</button>
-                        <button onclick="removeFromCart(${idx})" class="ml-2 text-zinc-500 hover:text-rose-400 text-xs">✕</button>
-                    </div>
-                </div>
-            `).join('');
+            // Processing Sequence Illusion
+            const textElement = document.getElementById('loading-text');
+            setTimeout(() => { textElement.innerText = "Provisioning Customer Portal..."; }, 1000);
+            setTimeout(() => { textElement.innerText = "Syncing Local Storage Engine..."; }, 2000);
+            setTimeout(() => { 
+                textElement.innerText = "System Ready. Redirecting."; 
+                // NEXT STEP: Uncomment this when you build the demo portal
+                // window.location.href = "demo.html";
+                console.log("Payload saved to localStorage:", JSON.parse(localStorage.getItem('demo_config')));
+            }, 3000);
         }
-
-        function adjustCartQuantity(index, delta) {
-            let cart = app.cart;
-            cart[index].quantity += delta;
-            if (cart[index].quantity <= 0) {
-                cart.splice(index, 1);
-            }
-            app.cart = cart;
-            updateCartBadges();
-            if (app.cart.length === 0) closeCartModal();
-            else renderCartItems();
-        }
-
-        function closeCartModal() { document.getElementById('cartModal').style.display = 'none'; }
-        
-        function removeFromCart(index) { 
-            let cart = app.cart;
-            cart.splice(index, 1); 
-            app.cart = cart;
-            updateCartBadges(); 
-            if (app.cart.length === 0) closeCartModal(); 
-            else renderCartItems(); 
-        }
-
-        function submitOrder() {
-            const cart = app.cart;
-            if (cart.length === 0) { alert("Cart is empty!"); return; }
-            const ticketId = Date.now().toString().slice(-3);
-            let nameInput = document.getElementById('customerName').value.trim();
-            let finalCustomerName = (!nameInput || nameInput.toLowerCase() === 'guest') ? `Guest #${ticketId}` : `${nameInput} (#${ticketId})`;
-
-            const notes = document.getElementById('customerOrderNotes').value.trim();
-            const summary = cart.map(i => `${i.quantity}x ${i.name}`).join(', ');
-            const total = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
-            
-            const extraAddMins = parseInt(app.extraWait) || 0;
-            const newOrder = {
-                id: ticketId,
-                name: finalCustomerName,
-                items: summary,
-                status: "Preparing",
-                total,
-                timestamp: Date.now(),
-                notes,
-                cartSnapshot: [...cart],
-                extraWaitMins: extraAddMins
-            };
-
-            let orders = app.orders;
-            orders.unshift(newOrder);
-            app.orders = orders;
-            app.cart = []; 
-            closeCartModal(); 
-            updateCartBadges(); 
-
-            document.getElementById('successTicketNum').innerText = `#${newOrder.id}`;
-            document.getElementById('successCustomerName').innerText = `Customer: ${newOrder.name}`;
-            document.getElementById('successModal').style.display = 'flex';
-        }
-
-        function closeSuccessModal() {
-            document.getElementById('successModal').style.display = 'none';
-            switchView('tracker');
-        }
-
-        function renderTracker() {
-            const container = document.getElementById('activeOrdersList');
-            if(!container) return;
-            const orders = app.orders;
-            if (orders.length === 0) {
-                container.innerHTML = `<div class="text-center text-zinc-500 py-8 text-xs">No active orders right now.</div>`;
-                return;
-            }
-            container.innerHTML = orders.map(o => {
-                const waitMins = Math.floor((Date.now() - o.timestamp) / 60000);
-                const extraAdded = o.extraWaitMins || 0;
-                return `
-                    <div class="bg-zinc-900 border border-zinc-800 p-4 rounded-xl flex justify-between items-center">
-                        <div>
-                            <span class="text-xs text-pink-500 font-mono font-bold">Ticket #${o.id} • ${o.name}</span>
-                            <div class="text-[11px] text-zinc-400 mt-0.5">Elapsed time: ~${waitMins}m ${extraAdded ? `(+${extraAdded}m kitchen delay)` : ''}</div>
-                            <span class="inline-block mt-2 px-2.5 py-1 rounded-full text-xs font-medium ${o.status === 'Preparing' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}">${o.status}</span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        window.onload = initApp;
     </script>
 </body>
 </html>
